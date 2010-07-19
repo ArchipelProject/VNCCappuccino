@@ -1,0 +1,17 @@
+<h2>VNCCappuccino</h2>
+------------------
+
+<h3>What is VNCCappuccino ?</h3>
+---------------------------
+<p>This is a set of classes uses to bind the pure Javascript library 
+NoVNC Library. This allows to use pure Javascript implementation or VNC protocol. 
+This Library is used by Archipel Project, which is not 
+public at this time. This library is released under AGPL license. Feel 
+free to use it or improve it.</p>
+
+<h3>Quick Start</h3>
+-----------
+<p>Simply include the VNCCappuccino framework in your Frameworks directory and include NOVNCCappuccino.j</p>
+
+@import <VNCCappuccino/VNCCappuccino.j>
+
