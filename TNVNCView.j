@@ -26,8 +26,9 @@
     CPString    _password   @accessors(property=password);
     BOOL        _encrypted  @accessors(setter=setEncrypted:, getter=isEncrypted);
     BOOL        _trueColor  @accessors(setter=setTrueColor:, getter=isTrueColor);
-
+    
     id          _DOMCanvas;
+    CPTextField _fieldFocusTrick;
 }
 
 - (id)initWithFrame:(CPRect)aFrame
@@ -39,30 +40,26 @@
         _encrypted = NO;
         _trueColor = YES;
         _password = "";
-         // <div id='vnc'>
-         //        <div id="VNC_screen">
-         //          <canvas id="VNC_canvas" width="0px" height="0px" style="zoom: ::SCALE::%">
-         //              Canvas not supported.
-         //          </canvas>
-         //        </div>
-         //    </div>
-            
+        
+        _fieldFocusTrick = [[CPTextField alloc] initWithFrame:CPRectMake(0,0,0,0)];
+        [self addSubview:_fieldFocusTrick];
+        
         var novnc_div               = document.createElement("div");
         novnc_div.id                = "vnc";
-        novnc_div.width             = "100%";
-        novnc_div.height            = "100%";
         
         var novnc_screen            = document.createElement("div");
         novnc_screen.id             = "VNC_screen"
-        novnc_screen.width          = "100%";
-        novnc_screen.height         = "100%";
         
         var novnc_canvas            = document.createElement("canvas");
         novnc_canvas.id             = "VNC_canvas";
         novnc_canvas.width          = "0px";
         novnc_canvas.height         = "0px";
         novnc_canvas.innerHTML      = "Canvas not supported.";
+        // novnc_canvas.style.display      = "block";
+        // novnc_canvas.style.marginRight  = "auto";
+        // novnc_canvas.style.marginLeft   = "auto";
         
+                
         _DOMCanvas = novnc_canvas;
         
         novnc_screen.appendChild(novnc_canvas);
@@ -74,13 +71,12 @@
     return self;
 }
 
-
-
 - (IBAction)connect:(id)sender
 {
     RFB.init_vars();
     RFB.load();
     RFB.connect(_host, _port, _password, _encrypted, _trueColor);
+    _DOMCanvas.focus();
 }
 
 - (IBAction)disconnect:(id)sender
@@ -98,5 +94,27 @@
     RFB.init_vars();
 }
 
+- (CPRect)canvasSize
+{
+    return CPSizeMake(_DOMCanvas.width, _DOMCanvas.height);
+}
+
+- (CPRect)canvasZoom
+{
+    return parseInt(_DOMCanvas.style.zoom);
+}
+
+- (void)setCanvasBorderColor:(CPString)aColor
+{
+    _DOMCanvas.style.border = "1px solid " + aColor
+}
+
+- (BOOL)becomeFirstResponder
+{
+    _DOMCanvas.focus();
+    
+    [[self window] makeFirstResponder:_fieldFocusTrick];
+    return YES;
+}
 @end
 

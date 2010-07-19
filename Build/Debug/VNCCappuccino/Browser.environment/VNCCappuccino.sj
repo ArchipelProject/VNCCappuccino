@@ -1,6 +1,6 @@
-@STATIC;1.0;p;11;TNVNCView.jt;3687;@STATIC;1.0;I;15;AppKit/AppKit.jt;3648;objj_executeFile("AppKit/AppKit.j", NO);
+@STATIC;1.0;p;11;TNVNCView.jt;4555;@STATIC;1.0;I;15;AppKit/AppKit.jt;4516;objj_executeFile("AppKit/AppKit.j", NO);
 {var the_class = objj_allocateClassPair(CPView, "TNVNCView"),
-meta_class = the_class.isa;class_addIvars(the_class, [new objj_ivar("_host"), new objj_ivar("_port"), new objj_ivar("_password"), new objj_ivar("_encrypted"), new objj_ivar("_trueColor"), new objj_ivar("_DOMCanvas")]);
+meta_class = the_class.isa;class_addIvars(the_class, [new objj_ivar("_host"), new objj_ivar("_port"), new objj_ivar("_password"), new objj_ivar("_encrypted"), new objj_ivar("_trueColor"), new objj_ivar("_DOMCanvas"), new objj_ivar("_fieldFocusTrick")]);
 objj_registerClassPair(the_class);
 class_addMethods(the_class, [new objj_method(sel_getUid("host"), function $TNVNCView__host(self, _cmd)
 { with(self)
@@ -71,14 +71,12 @@ _trueColor = newValue;
         _encrypted = NO;
         _trueColor = YES;
         _password = "";
+        _fieldFocusTrick = objj_msgSend(objj_msgSend(CPTextField, "alloc"), "initWithFrame:", CPRectMake(0,0,0,0));
+        objj_msgSend(self, "addSubview:", _fieldFocusTrick);
         var novnc_div = document.createElement("div");
         novnc_div.id = "vnc";
-        novnc_div.width = "100%";
-        novnc_div.height = "100%";
         var novnc_screen = document.createElement("div");
         novnc_screen.id = "VNC_screen"
-        novnc_screen.width = "100%";
-        novnc_screen.height = "100%";
         var novnc_canvas = document.createElement("canvas");
         novnc_canvas.id = "VNC_canvas";
         novnc_canvas.width = "0px";
@@ -97,6 +95,7 @@ _trueColor = newValue;
     RFB.init_vars();
     RFB.load();
     RFB.connect(_host, _port, _password, _encrypted, _trueColor);
+    _DOMCanvas.focus();
 }
 },["IBAction","id"]), new objj_method(sel_getUid("disconnect:"), function $TNVNCView__disconnect_(self, _cmd, sender)
 { with(self)
@@ -113,7 +112,28 @@ _trueColor = newValue;
 {
     RFB.init_vars();
 }
-},["IBAction","id"])]);
+},["IBAction","id"]), new objj_method(sel_getUid("canvasSize"), function $TNVNCView__canvasSize(self, _cmd)
+{ with(self)
+{
+    return CPSizeMake(_DOMCanvas.width, _DOMCanvas.height);
+}
+},["CPRect"]), new objj_method(sel_getUid("canvasZoom"), function $TNVNCView__canvasZoom(self, _cmd)
+{ with(self)
+{
+    return parseInt(_DOMCanvas.style.zoom);
+}
+},["CPRect"]), new objj_method(sel_getUid("setCanvasBorderColor:"), function $TNVNCView__setCanvasBorderColor_(self, _cmd, aColor)
+{ with(self)
+{
+    _DOMCanvas.style.border = "1px solid " + aColor
+}
+},["void","CPString"]), new objj_method(sel_getUid("becomeFirstResponder"), function $TNVNCView__becomeFirstResponder(self, _cmd)
+{ with(self)
+{
+    _DOMCanvas.focus();
+    return objj_msgSend(_fieldFocusTrick, "becomeFirstResponder");
+}
+},["BOOL"])]);
 }
 
 p;15;VNCCappuccino.jt;869;@STATIC;1.0;i;17;Resources/util.jsi;19;Resources/base64.jsi;16;Resources/des.jsi;19;Resources/canvas.jsi;16;Resources/vnc.jsi;36;Resources/web-socket-js/swfobject.jsi;35;Resources/web-socket-js/FABridge.jsi;37;Resources/web-socket-js/web_socket.jsi;11;TNVNCView.jt;600;objj_executeFile("Resources/util.js", YES);;

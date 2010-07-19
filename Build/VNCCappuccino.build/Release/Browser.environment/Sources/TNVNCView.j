@@ -1,7 +1,7 @@
-@STATIC;1.0;I;15;AppKit/AppKit.jt;2398;
+@STATIC;1.0;I;15;AppKit/AppKit.jt;3079;
 objj_executeFile("AppKit/AppKit.j",NO);
 var _1=objj_allocateClassPair(CPView,"TNVNCView"),_2=_1.isa;
-class_addIvars(_1,[new objj_ivar("_host"),new objj_ivar("_port"),new objj_ivar("_password"),new objj_ivar("_encrypted"),new objj_ivar("_trueColor"),new objj_ivar("_DOMCanvas")]);
+class_addIvars(_1,[new objj_ivar("_host"),new objj_ivar("_port"),new objj_ivar("_password"),new objj_ivar("_encrypted"),new objj_ivar("_trueColor"),new objj_ivar("_DOMCanvas"),new objj_ivar("_fieldFocusTrick")]);
 objj_registerClassPair(_1);
 class_addMethods(_1,[new objj_method(sel_getUid("host"),function(_3,_4){
 with(_3){
@@ -51,14 +51,12 @@ _port=5900;
 _encrypted=NO;
 _trueColor=YES;
 _password="";
+_fieldFocusTrick=objj_msgSend(objj_msgSend(CPTextField,"alloc"),"initWithFrame:",CPRectMake(0,0,0,0));
+objj_msgSend(_1c,"addSubview:",_fieldFocusTrick);
 var _1f=document.createElement("div");
 _1f.id="vnc";
-_1f.width="100%";
-_1f.height="100%";
 var _20=document.createElement("div");
 _20.id="VNC_screen";
-_20.width="100%";
-_20.height="100%";
 var _21=document.createElement("canvas");
 _21.id="VNC_canvas";
 _21.width="0px";
@@ -76,6 +74,7 @@ with(_22){
 RFB.init_vars();
 RFB.load();
 RFB.connect(_host,_port,_password,_encrypted,_trueColor);
+_DOMCanvas.focus();
 }
 }),new objj_method(sel_getUid("disconnect:"),function(_25,_26,_27){
 with(_25){
@@ -88,5 +87,22 @@ _DOMCanvas.style.zoom=_2a+"%";
 }),new objj_method(sel_getUid("reset:"),function(_2b,_2c,_2d){
 with(_2b){
 RFB.init_vars();
+}
+}),new objj_method(sel_getUid("canvasSize"),function(_2e,_2f){
+with(_2e){
+return CPSizeMake(_DOMCanvas.width,_DOMCanvas.height);
+}
+}),new objj_method(sel_getUid("canvasZoom"),function(_30,_31){
+with(_30){
+return parseInt(_DOMCanvas.style.zoom);
+}
+}),new objj_method(sel_getUid("setCanvasBorderColor:"),function(_32,_33,_34){
+with(_32){
+_DOMCanvas.style.border="1px solid "+_34;
+}
+}),new objj_method(sel_getUid("becomeFirstResponder"),function(_35,_36){
+with(_35){
+_DOMCanvas.focus();
+return objj_msgSend(_fieldFocusTrick,"becomeFirstResponder");
 }
 })]);

@@ -1281,6 +1281,11 @@ mouseButton: function(x, y, down, bmask) {
         x = x * (1/z);
         y = y * (1/z);
     }
+
+    // if ($(RFB.canvasID).style.marginLeft) {
+    //     x -= parseInt($(RFB.canvasID).style.marginLeft);
+    // }
+    
     
     RFB.mouse_arr = RFB.mouse_arr.concat( RFB.pointerEvent(x, y) );
     RFB.flushClient();
@@ -1294,6 +1299,10 @@ mouseMove: function(x, y) {
         x = x * (1/z);
         y = y * (1/z);
     }
+    
+    // if ($(RFB.canvasID).style.marginLeft) {
+    //     x -= parseInt($(RFB.canvasID).style.marginLeft);
+    // }
     
     RFB.mouse_arr = RFB.mouse_arr.concat( RFB.pointerEvent(x, y) );
 },

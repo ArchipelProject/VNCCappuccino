@@ -97,25 +97,26 @@ onMouseMove: function (e) {
 
 onKeyDown: function (e) {
     //Util.Debug("keydown: " + Canvas.getKeysym(e));
+    Util.stopEvent(e);
     if (! Canvas.focused) {
         return true;
     }
     if (Canvas.keyPress) {
         Canvas.keyPress(Canvas.getKeysym(e), 1);
     }
-    Util.stopEvent(e);
     return false;
 },
 
 onKeyUp : function (e) {
     //Util.Debug("keyup: " + Canvas.getKeysym(e));
+    Util.stopEvent(e);
+    
     if (! Canvas.focused) {
         return true;
     }
     if (Canvas.keyPress) {
         Canvas.keyPress(Canvas.getKeysym(e), 0);
     }
-    Util.stopEvent(e);
     return false;
 },
 
@@ -238,7 +239,8 @@ clear: function () {
 
 resize: function (width, height, true_color) {
     var c = $(Canvas.id);
-
+    if (!c)
+        return
     if (typeof true_color !== "undefined") {
         Canvas.true_color = true_color;
     }

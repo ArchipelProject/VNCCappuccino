@@ -148,15 +148,11 @@ Util.dirObj = function (obj, depth, parent) {
 
 // Get DOM element position on page
 Util.getPosition = function (obj) {
-    var x = 0, y = 0, z = 1;
+    var x = 0, y = 0;
     if (obj.offsetParent) {
         do {
-            oL = obj.offsetLeft;
-            oT = obj.offsetTop;
-            
-            x += oL;
-            y += oT;
-            
+            x += obj.offsetLeft;
+            y += obj.offsetTop;
             obj = obj.offsetParent;
         } while (obj);
     }
@@ -197,6 +193,9 @@ Util.addEvent = function (obj, evType, fn){
 };
 
 Util.removeEvent = function(obj, evType, fn){
+    if (!obj)
+        return true;
+    
     if (obj.detachEvent){
         var r = obj.detachEvent("on"+evType, fn);
         return r;
