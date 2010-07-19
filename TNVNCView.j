@@ -112,7 +112,6 @@
 - (BOOL)becomeFirstResponder
 {
     _DOMCanvas.focus();
-    
     [[self window] makeFirstResponder:_fieldFocusTrick];
     return YES;
 }
