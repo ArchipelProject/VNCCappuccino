@@ -6,3 +6,7 @@ Build/**
 Documentation/**
 *Documentation*
 debug.txt
+
+syntax: regexp
+Build\\*
+Documenation\\*
