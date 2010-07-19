@@ -2,7 +2,7 @@ syntax: glob
 .DS_Store
 *~
 Build/**
-Build
+*Build*
 Documentation/**
-Documentation
+*Documentation*
 debug.txt
