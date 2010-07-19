@@ -1,4 +1,4 @@
-@STATIC;1.0;p;11;TNVNCView.jt;3520;@STATIC;1.0;I;15;AppKit/AppKit.jt;3481;objj_executeFile("AppKit/AppKit.j", NO);
+@STATIC;1.0;p;11;TNVNCView.jt;3687;@STATIC;1.0;I;15;AppKit/AppKit.jt;3648;objj_executeFile("AppKit/AppKit.j", NO);
 {var the_class = objj_allocateClassPair(CPView, "TNVNCView"),
 meta_class = the_class.isa;class_addIvars(the_class, [new objj_ivar("_host"), new objj_ivar("_port"), new objj_ivar("_password"), new objj_ivar("_encrypted"), new objj_ivar("_trueColor"), new objj_ivar("_DOMCanvas")]);
 objj_registerClassPair(the_class);
@@ -94,6 +94,7 @@ _trueColor = newValue;
 },["id","CPRect"]), new objj_method(sel_getUid("connect:"), function $TNVNCView__connect_(self, _cmd, sender)
 { with(self)
 {
+    RFB.init_vars();
     RFB.load();
     RFB.connect(_host, _port, _password, _encrypted, _trueColor);
 }
@@ -107,7 +108,12 @@ _trueColor = newValue;
 {
     _DOMCanvas.style.zoom = aZoomFactor + "%";
 }
-},["void","int"])]);
+},["void","int"]), new objj_method(sel_getUid("reset:"), function $TNVNCView__reset_(self, _cmd, sender)
+{ with(self)
+{
+    RFB.init_vars();
+}
+},["IBAction","id"])]);
 }
 
 p;15;VNCCappuccino.jt;869;@STATIC;1.0;i;17;Resources/util.jsi;19;Resources/base64.jsi;16;Resources/des.jsi;19;Resources/canvas.jsi;16;Resources/vnc.jsi;36;Resources/web-socket-js/swfobject.jsi;35;Resources/web-socket-js/FABridge.jsi;37;Resources/web-socket-js/web_socket.jsi;11;TNVNCView.jt;600;objj_executeFile("Resources/util.js", YES);;

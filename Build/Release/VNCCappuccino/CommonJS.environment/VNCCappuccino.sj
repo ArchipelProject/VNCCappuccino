@@ -1,4 +1,4 @@
-@STATIC;1.0;p;11;TNVNCView.jt;2327;@STATIC;1.0;I;15;AppKit/AppKit.jt;2288;
+@STATIC;1.0;p;11;TNVNCView.jt;2437;@STATIC;1.0;I;15;AppKit/AppKit.jt;2398;
 objj_executeFile("AppKit/AppKit.j",NO);
 var _1=objj_allocateClassPair(CPView,"TNVNCView"),_2=_1.isa;
 class_addIvars(_1,[new objj_ivar("_host"),new objj_ivar("_port"),new objj_ivar("_password"),new objj_ivar("_encrypted"),new objj_ivar("_trueColor"),new objj_ivar("_DOMCanvas")]);
@@ -73,6 +73,7 @@ return _1c;
 }
 }),new objj_method(sel_getUid("connect:"),function(_22,_23,_24){
 with(_22){
+RFB.init_vars();
 RFB.load();
 RFB.connect(_host,_port,_password,_encrypted,_trueColor);
 }
@@ -83,6 +84,10 @@ RFB.disconnect();
 }),new objj_method(sel_getUid("setZoom:"),function(_28,_29,_2a){
 with(_28){
 _DOMCanvas.style.zoom=_2a+"%";
+}
+}),new objj_method(sel_getUid("reset:"),function(_2b,_2c,_2d){
+with(_2b){
+RFB.init_vars();
 }
 })]);
 p;15;VNCCappuccino.jt;831;@STATIC;1.0;i;17;Resources/util.jsi;19;Resources/base64.jsi;16;Resources/des.jsi;19;Resources/canvas.jsi;16;Resources/vnc.jsi;36;Resources/web-socket-js/swfobject.jsi;35;Resources/web-socket-js/FABridge.jsi;37;Resources/web-socket-js/web_socket.jsi;11;TNVNCView.jt;562;

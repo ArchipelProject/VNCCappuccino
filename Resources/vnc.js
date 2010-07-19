@@ -1276,8 +1276,7 @@ mouseButton: function(x, y, down, bmask) {
         RFB.mouse_buttonMask ^= bmask;
     }
     
-    if ($(RFB.canvasID).style.zoom)
-    {
+    if ($(RFB.canvasID).style.zoom) {
         z = parseFloat($(RFB.canvasID).style.zoom) / 100;
         x = x * (1/z);
         y = y * (1/z);

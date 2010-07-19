@@ -1,4 +1,4 @@
-@STATIC;1.0;I;15;AppKit/AppKit.jt;3481;objj_executeFile("AppKit/AppKit.j", NO);
+@STATIC;1.0;I;15;AppKit/AppKit.jt;3648;objj_executeFile("AppKit/AppKit.j", NO);
 {var the_class = objj_allocateClassPair(CPView, "TNVNCView"),
 meta_class = the_class.isa;class_addIvars(the_class, [new objj_ivar("_host"), new objj_ivar("_port"), new objj_ivar("_password"), new objj_ivar("_encrypted"), new objj_ivar("_trueColor"), new objj_ivar("_DOMCanvas")]);
 objj_registerClassPair(the_class);
@@ -94,6 +94,7 @@ _trueColor = newValue;
 },["id","CPRect"]), new objj_method(sel_getUid("connect:"), function $TNVNCView__connect_(self, _cmd, sender)
 { with(self)
 {
+    RFB.init_vars();
     RFB.load();
     RFB.connect(_host, _port, _password, _encrypted, _trueColor);
 }
@@ -107,6 +108,11 @@ _trueColor = newValue;
 {
     _DOMCanvas.style.zoom = aZoomFactor + "%";
 }
-},["void","int"])]);
+},["void","int"]), new objj_method(sel_getUid("reset:"), function $TNVNCView__reset_(self, _cmd, sender)
+{ with(self)
+{
+    RFB.init_vars();
+}
+},["IBAction","id"])]);
 }
 

@@ -78,6 +78,7 @@
 
 - (IBAction)connect:(id)sender
 {
+    RFB.init_vars();
     RFB.load();
     RFB.connect(_host, _port, _password, _encrypted, _trueColor);
 }
@@ -90,6 +91,11 @@
 - (void)setZoom:(int)aZoomFactor
 {
     _DOMCanvas.style.zoom = aZoomFactor + @"%";
+}
+
+- (IBAction)reset:(id)sender
+{
+    RFB.init_vars();
 }
 
 @end

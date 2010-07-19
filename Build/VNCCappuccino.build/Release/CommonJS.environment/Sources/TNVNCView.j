@@ -1,4 +1,4 @@
-@STATIC;1.0;I;15;AppKit/AppKit.jt;2288;
+@STATIC;1.0;I;15;AppKit/AppKit.jt;2398;
 objj_executeFile("AppKit/AppKit.j",NO);
 var _1=objj_allocateClassPair(CPView,"TNVNCView"),_2=_1.isa;
 class_addIvars(_1,[new objj_ivar("_host"),new objj_ivar("_port"),new objj_ivar("_password"),new objj_ivar("_encrypted"),new objj_ivar("_trueColor"),new objj_ivar("_DOMCanvas")]);
@@ -73,6 +73,7 @@ return _1c;
 }
 }),new objj_method(sel_getUid("connect:"),function(_22,_23,_24){
 with(_22){
+RFB.init_vars();
 RFB.load();
 RFB.connect(_host,_port,_password,_encrypted,_trueColor);
 }
@@ -83,5 +84,9 @@ RFB.disconnect();
 }),new objj_method(sel_getUid("setZoom:"),function(_28,_29,_2a){
 with(_28){
 _DOMCanvas.style.zoom=_2a+"%";
+}
+}),new objj_method(sel_getUid("reset:"),function(_2b,_2c,_2d){
+with(_2b){
+RFB.init_vars();
 }
 })]);
