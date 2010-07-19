@@ -1275,12 +1275,27 @@ mouseButton: function(x, y, down, bmask) {
     } else {
         RFB.mouse_buttonMask ^= bmask;
     }
+    
+    if ($(RFB.canvasID).style.zoom)
+    {
+        z = parseFloat($(RFB.canvasID).style.zoom) / 100;
+        x = x * (1/z);
+        y = y * (1/z);
+    }
+    
     RFB.mouse_arr = RFB.mouse_arr.concat( RFB.pointerEvent(x, y) );
     RFB.flushClient();
 },
 
 mouseMove: function(x, y) {
     //Util.Debug('>> mouseMove ' + x + "," + y);
+    if ($(RFB.canvasID).style.zoom)
+    {
+        z = parseFloat($(RFB.canvasID).style.zoom) / 100;
+        x = x * (1/z);
+        y = y * (1/z);
+    }
+    
     RFB.mouse_arr = RFB.mouse_arr.concat( RFB.pointerEvent(x, y) );
 },
 
