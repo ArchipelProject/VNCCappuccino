@@ -1,12 +1,8 @@
 syntax: glob
 .DS_Store
 *~
-Build
-*Build*
+Build/*
 Documentation/**
 *Documentation*
 debug.txt
 
-syntax: regexp
-Build\\*
-Documenation\\*
