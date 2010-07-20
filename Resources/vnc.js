@@ -166,6 +166,8 @@ connect: function (host, port, password, encrypt, true_color) {
 
 disconnect: function () {
     //Util.Debug(">> disconnect");
+    if (Canvas.ctx) 
+        Canvas.clear();
     RFB.updateState('disconnected', 'Disconnected');
     //Util.Debug("<< disconnect");
 },
@@ -368,6 +370,7 @@ init_msg: function () {
             case 2:  // VNC authentication
                 if (RFB.password.length === 0) {
                     RFB.updateState('password', "Password Required");
+                    Canvas.clear();
                     return;
                 }
                 if (RQ.length < 16) {
@@ -402,6 +405,7 @@ init_msg: function () {
         switch (RQ.shift32()) {
             case 0:  // OK
                 RFB.updateState('ServerInitialisation', "Authentication OK");
+                Canvas.clear();
                 break;
             case 1:  // failed
                 if (RFB.version >= 3.8) {
@@ -411,10 +415,12 @@ init_msg: function () {
                 } else {
                     RFB.updateState('failed', "Authentication failed");
                 }
+                Canvas.clear();
                 return;
             case 2:  // too-many
                 RFB.updateState('failed',
                         "Disconnected: too many auth attempts");
+                Canvas.clear();
                 return;
         }
         RFB.send_array([RFB.shared]); // ClientInitialisation
@@ -445,8 +451,12 @@ init_msg: function () {
         RQ.shiftStr(12);
         name_length   = RQ.shift32();
         RFB.fb_name = RQ.shiftStr(name_length);
-
-        Canvas.resize(RFB.fb_width, RFB.fb_height, RFB.true_color);
+        
+        if (RFB.fb_width < 10)
+            Canvas.resize(800, 600, RFB.true_color);
+        else
+            Canvas.resize(RFB.fb_width, RFB.fb_height, RFB.true_color);
+        
         Canvas.start(RFB.keyPress, RFB.mouseButton, RFB.mouseMove);
 
         if (RFB.true_color) {
@@ -989,7 +999,13 @@ set_desktopsize : function () {
     RFB.fb_width = RFB.FBU.width;
     RFB.fb_height = RFB.FBU.height;
     Canvas.clear();
-    Canvas.resize(RFB.fb_width, RFB.fb_height);
+    
+    if (RFB.fb_width < 10)
+        Canvas.resize(800, 600);
+    else
+        Canvas.resize(RFB.fb_width, RFB.fb_height);
+    
+    
     RFB.timing.fbu_rt_start = (new Date()).getTime();
     // Send a new non-incremental request
     RFB.send_array(RFB.fbUpdateRequest(0));
@@ -1382,13 +1398,10 @@ updateState: function(state, statusMsg) {
 
         if (Canvas.ctx) {
             Canvas.stop();
-            if (! /__debug__$/i.test(document.location.href)) {
-                Canvas.clear();
-            }
+            Canvas.clear();
         }
 
         RFB.show_timings();
-
         break;
 
 
@@ -1405,6 +1418,7 @@ updateState: function(state, statusMsg) {
 
     case 'password':
         // Ignore password state by default
+        Canvas.clear();
         break;
 
 
@@ -1431,6 +1445,9 @@ updateState: function(state, statusMsg) {
             RFB.ws.close();
         }
         // Make sure we transition to disconnected
+        if (Canvas.ctx) {
+            Canvas.clear();
+        }
         setTimeout(function() { RFB.updateState('disconnected'); }, 50);
 
         break;

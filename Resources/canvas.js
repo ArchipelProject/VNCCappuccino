@@ -12,6 +12,8 @@
 
 // Canvas, Canvas_native;
 
+CAPPUCCINO_FIX_OLD_DOCUMENT_CLICK_FN = null;
+
 (function () {
     var pre, start = "<script src='", end = "'><\/script>";
     if (document.createElement('canvas').getContext) {
@@ -97,19 +99,18 @@ onMouseMove: function (e) {
 
 onKeyDown: function (e) {
     //Util.Debug("keydown: " + Canvas.getKeysym(e));
-    Util.stopEvent(e);
     if (! Canvas.focused) {
         return true;
     }
     if (Canvas.keyPress) {
         Canvas.keyPress(Canvas.getKeysym(e), 1);
     }
+    Util.stopEvent(e);
     return false;
 },
 
 onKeyUp : function (e) {
     //Util.Debug("keyup: " + Canvas.getKeysym(e));
-    Util.stopEvent(e);
     
     if (! Canvas.focused) {
         return true;
@@ -117,6 +118,7 @@ onKeyUp : function (e) {
     if (Canvas.keyPress) {
         Canvas.keyPress(Canvas.getKeysym(e), 0);
     }
+    Util.stopEvent(e);
     return false;
 },
 
@@ -219,6 +221,8 @@ start: function (keyPress, mouseButton, mouseMove) {
 
     Util.addEvent(document, 'keydown', Canvas.onKeyDown);
     Util.addEvent(document, 'keyup', Canvas.onKeyUp);
+    // Util.addEvent(c, 'keydown', Canvas.onKeyDown);
+    // Util.addEvent(c, 'keyup', Canvas.onKeyUp);
     Util.addEvent(c, 'mousedown', Canvas.onMouseDown);
     Util.addEvent(c, 'mouseup', Canvas.onMouseUp);
     Util.addEvent(c, 'mousemove', Canvas.onMouseMove);
@@ -226,15 +230,20 @@ start: function (keyPress, mouseButton, mouseMove) {
             Canvas.onMouseWheel);
 
     /* Work around right and middle click browser behaviors */
+    
     Util.addEvent(document, 'click', Canvas.onMouseDisable);
     Util.addEvent(document.body, 'contextmenu', Canvas.onMouseDisable);
-
+    
+    // Util.addEvent(c, 'click', Canvas.onMouseDisable);
+    // Util.addEvent(c, 'contextmenu', Canvas.onMouseDisable);
+    
+    
     Util.Debug("<< Canvas.start");
 },
 
 clear: function () {
-    Canvas.resize(640, 20);
     Canvas.ctx.clearRect(0, 0, Canvas.c_wx, Canvas.c_wy);
+    Canvas.resize(800, 600);
 },
 
 resize: function (width, height, true_color) {
@@ -256,6 +265,8 @@ stop: function () {
     var c = $(Canvas.id);
     Util.removeEvent(document, 'keydown', Canvas.onKeyDown);
     Util.removeEvent(document, 'keyup', Canvas.onKeyUp);
+    Util.removeEvent(c, 'keydown', Canvas.onKeyDown);
+    Util.removeEvent(c, 'keyup', Canvas.onKeyUp);
     Util.removeEvent(c, 'mousedown', Canvas.onMouseDown);
     Util.removeEvent(c, 'mouseup', Canvas.onMouseUp);
     Util.removeEvent(c, 'mousemove', Canvas.onMouseMove);
@@ -265,6 +276,10 @@ stop: function () {
     /* Work around right and middle click browser behaviors */
     Util.removeEvent(document, 'click', Canvas.onMouseDisable);
     Util.removeEvent(document.body, 'contextmenu', Canvas.onMouseDisable);
+    
+    // Util.removeEvent(c, 'click', Canvas.onMouseDisable);
+    // Util.removeEvent(c, 'contextmenu', Canvas.onMouseDisable);
+    
 },
 
 /*
