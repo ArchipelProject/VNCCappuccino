@@ -8,49 +8,16 @@
 
 "use strict";
 /*jslint white: false, nomen: false, browser: true, bitwise: false */
-/*global window, WebSocket, Util, Canvas, VNC_uri_prefix, Base64, DES */
+/*global window, WebSocket, Util, Canvas, VNC_native_ws, Base64, DES */
 
-VNC_native_ws = true;
+// Globals defined here
+// var RFB;
 
 /*
  * RFB namespace
  */
 
 RFB = {
-
-get_VNC_uri_prefix: function () {
-    return (typeof VNC_uri_prefix !== "undefined") ? VNC_uri_prefix : "include/";
-},
-
-loadExtras: function () {
-    var extra = "", start, end;
-
-    start = "<script src='" + RFB.get_VNC_uri_prefix();
-    end = "'><\/script>";
-
-    // Uncomment to activate firebug lite
-    //extra += "<script src='http://getfirebug.com/releases/lite/1.2/" + 
-    //         "firebug-lite-compressed.js'><\/script>";
-
-    extra += start + "util.js" + end;
-    extra += start + "base64.js" + end;
-    extra += start + "des.js" + end;
-    extra += start + "canvas.js" + end;
-
-    /* If no builtin websockets then load web_socket.js */
-    if (window.WebSocket) {
-        VNC_native_ws = true;
-    } else {
-        VNC_native_ws = false;
-        WebSocket__swfLocation = get_VNC_uri_prefix() +
-                    "web-socket-js/WebSocketMain.swf";
-        extra += start + "web-socket-js/swfobject.js" + end;
-        extra += start + "web-socket-js/FABridge.js" + end;
-        extra += start + "web-socket-js/web_socket.js" + end;
-    }
-    document.write(extra);
-},
-    
 
 /* 
  * External interface variables and methods
@@ -64,7 +31,7 @@ true_color     : false,
 b64encode      : true,  // false means UTF-8 on the wire
 local_cursor   : true,
 connectTimeout : 2000,  // time to wait for connection
-
+stateinvalid   : false,
 
 // In preference order
 encodings      : [
@@ -156,6 +123,7 @@ sendCtrlAltDel: function() {
 load: function () {
     var i;
     //Util.Debug(">> load");
+
     /* Load web-socket-js if no builtin WebSocket support */
     if (VNC_native_ws) {
         Util.Info("Using native WebSockets");
@@ -306,7 +274,8 @@ mouse_arr        : [],
 /* RFB/VNC initialisation */
 init_msg: function () {
     //Util.Debug(">> init_msg [RFB.state '" + RFB.state + "']");
-
+    if (RFB.stateinvalid)
+        return;
     var RQ = RFB.RQ, strlen, reason, reason_len, sversion, cversion,
         i, types, num_types, challenge, response, bpp, depth,
         big_endian, true_color, name_length;
@@ -389,7 +358,6 @@ init_msg: function () {
         }
         RFB.updateState('Authentication',
                 "Authenticating using scheme: " + RFB.auth_scheme);
-        break;
         // Fall through
 
     case 'Authentication' :
@@ -637,7 +605,7 @@ framebufferUpdate: function() {
             if (RFB.encNames[FBU.encoding]) {
                 // Debug:
                 /*
-                msg =  "FramebufferUpdate rects:" + FBU.rects;
+                var msg =  "FramebufferUpdate rects:" + FBU.rects;
                 msg += " x: " + FBU.x + " y: " + FBU.y
                 msg += " width: " + FBU.width + " height: " + FBU.height;
                 msg += " encoding:" + FBU.encoding;
@@ -1022,6 +990,8 @@ extract_data_uri : function (arr) {
 
 scan_tight_imgs : function () {
     var img, imgs;
+    if (RFB.stateinvalid)
+        return;
     if (RFB.state === 'normal') {
         imgs = RFB.FBU.imgs;
         while ((imgs.length > 0) && (imgs[0][0].complete)) {
@@ -1338,6 +1308,8 @@ flushClient: function () {
 
 checkEvents: function () {
     var now;
+    if (RFB.stateinvalid)
+        return;
     if (RFB.state === 'normal') {
         if (! RFB.flushClient()) {
             now = new Date().getTime();
@@ -1377,7 +1349,7 @@ clipboardCopyTo: function (text) {
     // Stub
 },
 
-externalUpdateState: function(state, msg) {
+externalUpdateState: function(state, oldstate, msg) {
     Util.Debug(">> externalUpdateState stub");
     // Stub
 },
@@ -1496,7 +1468,11 @@ updateState: function(state, statusMsg) {
             RFB.ws.close();
         }
         // Make sure we transition to disconnected
-        setTimeout(function() { RFB.updateState('disconnected'); }, 50);
+        setTimeout(function() { 
+            if (RFB.stateinvalid)
+                return;
+            RFB.updateState('disconnected');
+        }, 50);
 
         break;
 
@@ -1508,14 +1484,16 @@ updateState: function(state, statusMsg) {
 
     if ((oldstate === 'failed') && (state === 'disconnected')) {
         // Leave the failed message
-        RFB.externalUpdateState(state);
+        RFB.externalUpdateState(state, oldstate);
     } else {
-        RFB.externalUpdateState(state, statusMsg);
+        RFB.externalUpdateState(state, oldstate, statusMsg);
     }
 },
 
 update_timings: function() {
     var now, timing = RFB.timing, offset;
+    if (RFB.stateinvalid)
+        return;
     now = (new Date()).getTime();
     timing.history.push([now,
             timing.h_fbus,
@@ -1618,10 +1596,12 @@ init_ws: function () {
     };
 
     setTimeout(function () {
-            if (RFB.ws.readyState === WebSocket.CONNECTING) {
-                RFB.updateState('failed', "Connect timeout");
-            }
-        }, RFB.connectTimeout);
+        if (RFB.stateinvalid)
+            return;
+        if (RFB.ws.readyState === WebSocket.CONNECTING) {
+            RFB.updateState('failed', "Connect timeout");
+        }
+    }, RFB.connectTimeout);
 
     //Util.Debug("<< init_ws");
 },
@@ -1646,6 +1626,13 @@ init_vars: function () {
     RFB.timing.h_rects = 0;
     RFB.timing.h_bytes = 0;
     RFB.timing.h_pixels = 0;
+    RFB.stateinvalid = false;
+},
+
+invalidateAllTimers: function(){
+    RFB.stateinvalid = true;
+    if (RFB.sendID)
+        clearInterval(RFB.sendID);
 }
 
 }; /* End of RFB */

@@ -8,10 +8,10 @@
 
 "use strict";
 /*jslint white: false, bitwise: false */
-/*global window, $, Util */
+/*global window, $, Util, Base64 */
 
-Canvas_native = true;
-
+// Globals defined here
+// var Canvas;
 
 // Everything namespaced inside Canvas
 Canvas = {
@@ -34,19 +34,6 @@ focused     : true,
 keyPress    : null,
 mouseButton : null,
 mouseMove   : null,
-
-
-loadExtra : function () {
-    var pre, start = "<script src='", end = "'><\/script>";
-    if (document.createElement('canvas').getContext) {
-        Canvas_native = true;
-    } else {
-        pre = (typeof VNC_uri_prefix !== "undefined") ?
-                            VNC_uri_prefix : "include/";
-        //document.write(start + pre + "excanvas.js" + end);
-        Canvas_native = false;
-    }
-},
 
 onMouseButton: function(e, down) {
     var evt, pos, bmask;
@@ -148,20 +135,11 @@ onMouseDisable: function (e) {
 
 
 init: function (id) {
-    var c, imgTest, tval, i, curTest, curSave;
+    var c, imgTest, tval, i, curDat, curSave;
     Util.Debug(">> Canvas.init");
 
     Canvas.id = id;
     c = $(Canvas.id);
-
-    if (Canvas_native) {
-        Util.Info("Using native canvas");
-        // Use default Canvas functions
-    } else {
-        Util.Warn("Using excanvas canvas emulation");
-        //G_vmlCanvasManager.init(c);
-        //G_vmlCanvasManager.initElement(c);
-    }
 
     if (! c.getContext) { throw("No getContext method"); }
     Canvas.ctx = c.getContext('2d'); 
@@ -261,15 +239,15 @@ start: function (keyPress, mouseButton, mouseMove) {
 },
 
 clear: function () {
-    Canvas.resize(640, 20);
+    Canvas.resize(800, 600);
     Canvas.ctx.clearRect(0, 0, Canvas.c_wx, Canvas.c_wy);
 },
 
 resize: function (width, height, true_color) {
     var c = $(Canvas.id);
     
-    if (!c)
-        return
+    // if (!c)
+    //     return
         
     if (typeof true_color !== "undefined") {
         Canvas.true_color = true_color;
@@ -291,8 +269,8 @@ rescale: function (factor) {
         
     c = $(Canvas.id);
     
-    if (!c)
-        return
+    // if (!c)
+    //     return
     
     x = c.width - c.width * factor;
     y = c.height - c.height * factor;
@@ -331,8 +309,8 @@ rescale: function (factor) {
 stop: function () {
     var c = $(Canvas.id);
     
-    if (!c)
-        return
+    // if (!c)
+    //     return
     
     Util.removeEvent(document, 'keydown', Canvas.onKeyDown);
     Util.removeEvent(document, 'keyup', Canvas.onKeyUp);
@@ -448,7 +426,7 @@ _rgbxImageData: function(x, y, width, height, arr, offset) {
 
 // really slow fallback if we don't have imageData
 _rgbxImageFill: function(x, y, width, height, arr, offset) {
-    var sx = 0, sy = 0;
+    var i, j, sx = 0, sy = 0;
     for (i=0, j=offset; i < (width * height); i+=1, j+=4) {
         Canvas.fillRect(x+sx, y+sy, 1, 1, [arr[j+0], arr[j+1], arr[j+2]]);
         sx += 1;
@@ -475,7 +453,7 @@ _cmapImageData: function(x, y, width, height, arr, offset) {
 },
 
 _cmapImageFill: function(x, y, width, height, arr, offset) {
-    var sx = 0, sy = 0;
+    var i, j, sx = 0, sy = 0, cmap;
     cmap = Canvas.colourMap;
     for (i=0, j=offset; i < (width * height); i+=1, j+=1) {
         Canvas.fillRect(x+sx, y+sy, 1, 1, [arr[j]]);
@@ -624,7 +602,7 @@ isCursor: function() {
     return Canvas.cursor_uri;
 },
 changeCursor: function(pixels, mask, hotx, hoty, w, h) {
-    var cur = [], cmap, IHDRsz, ANDsz, XORsz, url, idx, x, y;
+    var cur = [], cmap, rgb, IHDRsz, ANDsz, XORsz, url, idx, alpha, x, y;
     //Util.Debug(">> changeCursor, x: " + hotx + ", y: " + hoty + ", w: " + w + ", h: " + h);
     
     if (!Canvas.cursor_uri) {
