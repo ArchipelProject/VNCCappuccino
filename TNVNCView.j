@@ -46,7 +46,7 @@ TNVNCCappuccinoStatePassword                = @"password";
     
 
     
-    // CPTextField _fieldFocusTrick;
+    CPTextField _fieldFocusTrick;
 }
 
 - (id)initWithFrame:(CPRect)aFrame
@@ -59,8 +59,8 @@ TNVNCCappuccinoStatePassword                = @"password";
         _trueColor = YES;
         _password = "";
         
-        // _fieldFocusTrick = [[CPTextField alloc] initWithFrame:CPRectMake(0,0,0,0)];
-        // [self addSubview:_fieldFocusTrick];
+        _fieldFocusTrick = [[CPTextField alloc] initWithFrame:CPRectMake(0,0,0,0)];
+        [self addSubview:_fieldFocusTrick];
         
         var novnc_div               = document.createElement("div");
         novnc_div.id                = "vnc";
@@ -74,6 +74,8 @@ TNVNCCappuccinoStatePassword                = @"password";
         novnc_canvas.height         = "600px";
         novnc_canvas.innerHTML      = "Canvas not supported.";
         novnc_canvas.style.border   = "3px solid #8F8F8F";
+        novnc_canvas.style.display  = "block";
+        // novnc_canvas.style.float    = "left";
         
         novnc_canvas.onmouseover    = function(e){
             [self focus];
@@ -103,9 +105,10 @@ TNVNCCappuccinoStatePassword                = @"password";
 {
     [self reset];
     RFB.load();
+    RFB.setEncrypt(_encrypted);
+    RFB.setTrueColor(_trueColor);
     
     RFB.setClipboardReceive(function(text){
-        console.log("paste info received!");
         [[CPPasteboard generalPasteboard] setString:text forType:CPStringPboardType];
     });
     
@@ -116,7 +119,7 @@ TNVNCCappuccinoStatePassword                = @"password";
             [_delegate vncView:self updateState:state message:msg];
     });
     
-    RFB.connect(_host, _port, _password, _encrypted, _trueColor);
+    RFB.connect(_host, _port, _password);
 }
 
 - (IBAction)disconnect:(id)sender
@@ -127,12 +130,18 @@ TNVNCCappuccinoStatePassword                = @"password";
 
 - (void)setZoom:(int)aZoomFactor
 {
-    _DOMCanvas.style.zoom = aZoomFactor + @"%";
+    // _DOMCanvas.style.zoom = aZoomFactor + @"%";
+    Canvas.rescale(aZoomFactor / 100)
+}
+
+- (float)zoom
+{
+    return Canvas.scale
 }
 
 - (void)reset
 {
-    // [_fieldFocusTrick setStringValue:@""];
+    [_fieldFocusTrick setStringValue:@""];
     
     _DOMCanvas.width          = "800px";
     _DOMCanvas.height         = "600px";
@@ -147,12 +156,13 @@ TNVNCCappuccinoStatePassword                = @"password";
 
 - (CPRect)canvasZoom
 {
-    return parseInt(_DOMCanvas.style.zoom);
+    return Canvas.scale * 100;
 }
 
 - (void)focus
 {
     _oldResponder = [[self window] firstResponder];
+    [[self window] makeFirstResponder:_fieldFocusTrick];
     _DOMCanvas.focus();
     Canvas.focused = true;
     _DOMCanvas.style.border = "3px solid #A1CAE2";

@@ -10,31 +10,20 @@
 /*jslint white: false, bitwise: false */
 /*global window, $, Util */
 
-// Canvas, Canvas_native;
+Canvas_native = true;
 
-CAPPUCCINO_FIX_OLD_DOCUMENT_CLICK_FN = null;
-
-(function () {
-    var pre, start = "<script src='", end = "'><\/script>";
-    if (document.createElement('canvas').getContext) {
-        Canvas_native = true;
-    } else {
-        pre = (typeof VNC_uri_prefix !== "undefined") ?
-                            VNC_uri_prefix : "include/";
-        //document.write(start + pre + "excanvas.js" + end);
-        Canvas_native = false;
-    }
-}());
 
 // Everything namespaced inside Canvas
 Canvas = {
 
-prefer_js  : false,
-force_canvas : false,
+prefer_js    : false, // make private
+force_canvas : false, // make private
+cursor_uri   : true,  // make private
 
 true_color : false,
 colourMap  : [],
 
+scale: 1,
 c_wx : 0,
 c_wy : 0,
 ctx  : null,
@@ -46,10 +35,26 @@ keyPress    : null,
 mouseButton : null,
 mouseMove   : null,
 
+
+loadExtra : function () {
+    var pre, start = "<script src='", end = "'><\/script>";
+    if (document.createElement('canvas').getContext) {
+        Canvas_native = true;
+    } else {
+        pre = (typeof VNC_uri_prefix !== "undefined") ?
+                            VNC_uri_prefix : "include/";
+        //document.write(start + pre + "excanvas.js" + end);
+        Canvas_native = false;
+    }
+},
+
 onMouseButton: function(e, down) {
     var evt, pos, bmask;
+    if (! Canvas.focused) {
+        return true;
+    }
     evt = (e ? e : window.event);
-    pos = Util.getEventPosition(e, $(Canvas.id));
+    pos = Util.getEventPosition(e, $(Canvas.id), Canvas.scale);
     bmask = 1 << evt.button;
     //Util.Debug('mouse ' + pos.x + "," + pos.y + " down: " + down + " bmask: " + bmask);
     if (Canvas.mouseButton) {
@@ -70,7 +75,7 @@ onMouseUp: function (e) {
 onMouseWheel: function (e) {
     var evt, pos, bmask, wheelData;
     evt = (e ? e : window.event);
-    pos = Util.getEventPosition(e, $(Canvas.id));
+    pos = Util.getEventPosition(e, $(Canvas.id), Canvas.scale);
     wheelData = evt.detail ? evt.detail * -1 : evt.wheelDelta / 40;
     if (wheelData > 0) {
         bmask = 1 << 3;
@@ -90,7 +95,7 @@ onMouseWheel: function (e) {
 onMouseMove: function (e) {
     var evt, pos;
     evt = (e ? e : window.event);
-    pos = Util.getEventPosition(e, $(Canvas.id));
+    pos = Util.getEventPosition(e, $(Canvas.id), Canvas.scale);
     //Util.Debug('mouse ' + evt.which + '/' + evt.button + ' up:' + pos.x + "," + pos.y);
     if (Canvas.mouseMove) {
         Canvas.mouseMove(pos.x, pos.y);
@@ -111,7 +116,6 @@ onKeyDown: function (e) {
 
 onKeyUp : function (e) {
     //Util.Debug("keyup: " + Canvas.getKeysym(e));
-    
     if (! Canvas.focused) {
         return true;
     }
@@ -124,6 +128,9 @@ onKeyUp : function (e) {
 
 onMouseDisable: function (e) {
     var evt, pos;
+    if (! Canvas.focused) {
+        return true;
+    }
     evt = (e ? e : window.event);
     pos = Util.getPosition($(Canvas.id));
     /* Stop propagation if inside canvas area */
@@ -141,7 +148,7 @@ onMouseDisable: function (e) {
 
 
 init: function (id) {
-    var c, imgTest, arora;
+    var c, imgTest, tval, i, curTest, curSave;
     Util.Debug(">> Canvas.init");
 
     Canvas.id = id;
@@ -201,6 +208,25 @@ init: function (id) {
         Canvas._cmapImage = Canvas._cmapImageFill;
     }
 
+    /*
+     * Determine browser support for setting the cursor via data URI
+     * scheme
+     */
+    curDat = [];
+    for (i=0; i < 8 * 8 * 4; i++) {
+        curDat.push(255);
+    }
+    curSave = c.style.cursor;
+    Canvas.changeCursor(curDat, curDat, 2, 2, 8, 8);
+    if (c.style.cursor) {
+        Util.Info("Data URI scheme cursor supported");
+    } else {
+        Canvas.cursor_uri = false;
+        Util.Warn("Data URI scheme cursor not supported");
+    }
+    c.style.cursor = curSave;
+
+
     Canvas.colourMap = [];
     Canvas.prevStyle = "";
     Canvas.focused = true;
@@ -221,8 +247,6 @@ start: function (keyPress, mouseButton, mouseMove) {
 
     Util.addEvent(document, 'keydown', Canvas.onKeyDown);
     Util.addEvent(document, 'keyup', Canvas.onKeyUp);
-    // Util.addEvent(c, 'keydown', Canvas.onKeyDown);
-    // Util.addEvent(c, 'keyup', Canvas.onKeyUp);
     Util.addEvent(c, 'mousedown', Canvas.onMouseDown);
     Util.addEvent(c, 'mouseup', Canvas.onMouseUp);
     Util.addEvent(c, 'mousemove', Canvas.onMouseMove);
@@ -230,26 +254,23 @@ start: function (keyPress, mouseButton, mouseMove) {
             Canvas.onMouseWheel);
 
     /* Work around right and middle click browser behaviors */
-    
     Util.addEvent(document, 'click', Canvas.onMouseDisable);
     Util.addEvent(document.body, 'contextmenu', Canvas.onMouseDisable);
-    
-    // Util.addEvent(c, 'click', Canvas.onMouseDisable);
-    // Util.addEvent(c, 'contextmenu', Canvas.onMouseDisable);
-    
-    
+
     Util.Debug("<< Canvas.start");
 },
 
 clear: function () {
+    Canvas.resize(640, 20);
     Canvas.ctx.clearRect(0, 0, Canvas.c_wx, Canvas.c_wy);
-    Canvas.resize(800, 600);
 },
 
 resize: function (width, height, true_color) {
     var c = $(Canvas.id);
+    
     if (!c)
         return
+        
     if (typeof true_color !== "undefined") {
         Canvas.true_color = true_color;
     }
@@ -259,14 +280,62 @@ resize: function (width, height, true_color) {
 
     Canvas.c_wx = c.offsetWidth;
     Canvas.c_wy = c.offsetHeight;
+
+    Canvas.rescale(Canvas.scale);
+},
+
+rescale: function (factor) {
+    var c, tp, x, y,
+        properties = ['transform', 'WebkitTransform', 'MozTransform', 'oTransform', null];
+        origin = ['transformOrigin', 'WebkitTransformOrigin', 'MozTransformOrigin', 'oTransformOrigin', null];
+        
+    c = $(Canvas.id);
+    
+    if (!c)
+        return
+    
+    x = c.width - c.width * factor;
+    y = c.height - c.height * factor;
+    Canvas.scale = factor;
+    
+    if (typeof(c.style.zoom) != "undefined") {
+        c.style.zoom = Canvas.scale;
+        return
+    }
+    
+    while (tp = properties.shift()) {
+        if (typeof c.style[tp] != 'undefined') {
+            break;
+        }
+    }
+    
+    while (tpo = origin.shift()) {
+        if (typeof c.style[tpo] != 'undefined') {
+            break;
+        }
+    }
+
+    if (tp === null) {
+        Util.Debug("No scaling support");
+        return;
+    }
+
+    if (Canvas.scale === factor) {
+        Util.Debug("Canvas already scaled to '" + factor + "'");
+    }
+    
+    c.style[tpo] = "top left";
+    c.style[tp] = "scale(" + Canvas.scale + ")";
 },
 
 stop: function () {
     var c = $(Canvas.id);
+    
+    if (!c)
+        return
+    
     Util.removeEvent(document, 'keydown', Canvas.onKeyDown);
     Util.removeEvent(document, 'keyup', Canvas.onKeyUp);
-    Util.removeEvent(c, 'keydown', Canvas.onKeyDown);
-    Util.removeEvent(c, 'keyup', Canvas.onKeyUp);
     Util.removeEvent(c, 'mousedown', Canvas.onMouseDown);
     Util.removeEvent(c, 'mouseup', Canvas.onMouseUp);
     Util.removeEvent(c, 'mousemove', Canvas.onMouseMove);
@@ -276,10 +345,11 @@ stop: function () {
     /* Work around right and middle click browser behaviors */
     Util.removeEvent(document, 'click', Canvas.onMouseDisable);
     Util.removeEvent(document.body, 'contextmenu', Canvas.onMouseDisable);
-    
-    // Util.removeEvent(c, 'click', Canvas.onMouseDisable);
-    // Util.removeEvent(c, 'contextmenu', Canvas.onMouseDisable);
-    
+
+    // Turn off cursor rendering
+    if (Canvas.cursor_uri) {
+        c.style.cursor = "default";
+    }
 },
 
 /*
@@ -547,8 +617,88 @@ getKeysym: function(e) {
     } 
 
     return keysym;
-}
+},
 
+
+isCursor: function() {
+    return Canvas.cursor_uri;
+},
+changeCursor: function(pixels, mask, hotx, hoty, w, h) {
+    var cur = [], cmap, IHDRsz, ANDsz, XORsz, url, idx, x, y;
+    //Util.Debug(">> changeCursor, x: " + hotx + ", y: " + hoty + ", w: " + w + ", h: " + h);
+    
+    if (!Canvas.cursor_uri) {
+        Util.Warn("changeCursor called but no cursor data URI support");
+        return;
+    }
+
+    cmap = Canvas.colourMap;
+    IHDRsz = 40;
+    ANDsz = w * h * 4;
+    XORsz = Math.ceil( (w * h) / 8.0 );
+
+    // Main header
+    cur.push16le(0);      // Reserved
+    cur.push16le(2);      // .CUR type
+    cur.push16le(1);      // Number of images, 1 for non-animated ico
+
+    // Cursor #1 header
+    cur.push(w);          // width
+    cur.push(h);          // height
+    cur.push(0);          // colors, 0 -> true-color
+    cur.push(0);          // reserved
+    cur.push16le(hotx);   // hotspot x coordinate
+    cur.push16le(hoty);   // hotspot y coordinate
+    cur.push32le(IHDRsz + XORsz + ANDsz); // cursor data byte size
+    cur.push32le(22);     // offset of cursor data in the file
+
+    // Cursor #1 InfoHeader
+    cur.push32le(IHDRsz); // Infoheader size
+    cur.push32le(w);      // Cursor width
+    cur.push32le(h*2);    // XOR+AND height
+    cur.push16le(1);      // number of planes
+    cur.push16le(32);     // bits per pixel
+    cur.push32le(0);      // Type of compression
+    cur.push32le(XORsz + ANDsz); // Size of Image
+    cur.push32le(0);
+    cur.push32le(0);
+    cur.push32le(0);
+    cur.push32le(0);
+
+    // XOR/color data
+    for (y = h-1; y >= 0; y--) {
+        for (x = 0; x < w; x++) {
+            idx = y * Math.ceil(w / 8) + Math.floor(x/8);
+            alpha = (mask[idx] << (x % 8)) & 0x80 ? 255 : 0;
+
+            if (Canvas.true_color) {
+                idx = ((w * y) + x) * 4;
+                cur.push(pixels[idx + 2]); // blue
+                cur.push(pixels[idx + 1]); // green
+                cur.push(pixels[idx + 0]); // red
+                cur.push(alpha); // red
+            } else {
+                idx = (w * y) + x;
+                rgb = cmap[pixels[idx]];
+                cur.push(rgb[2]);          // blue
+                cur.push(rgb[1]);          // green
+                cur.push(rgb[0]);          // red
+                cur.push(alpha);           // alpha
+            }
+        }
+    }
+
+    // AND/bitmask data (ignored, just needs to be right size)
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < Math.ceil(w / 8); x++) {
+            cur.push(0x00);
+        }
+    }
+
+    url = "data:image/x-icon;base64," + Base64.encode(cur);
+    $(Canvas.id).style.cursor = "url(" + url + ") " + hotx + " " + hoty + ", default";
+    //Util.Debug("<< changeCursor, cur.length: " + cur.length);
+}
 
 };
 
