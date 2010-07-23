@@ -27,6 +27,8 @@ scale: 1,
 c_wx : 0,
 c_wy : 0,
 ctx  : null,
+defaut_canvas_w: 800,
+defaut_canvas_h: 490,
 
 prevStyle: "",
 
@@ -239,15 +241,12 @@ start: function (keyPress, mouseButton, mouseMove) {
 },
 
 clear: function () {
-    Canvas.resize(800, 600);
+    Canvas.resize(RFB.defaut_canvas_w, RFB.defaut_canvas_h);
     Canvas.ctx.clearRect(0, 0, Canvas.c_wx, Canvas.c_wy);
 },
 
 resize: function (width, height, true_color) {
     var c = $(Canvas.id);
-    
-    // if (!c)
-    //     return
         
     if (typeof true_color !== "undefined") {
         Canvas.true_color = true_color;

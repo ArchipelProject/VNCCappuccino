@@ -28,21 +28,22 @@ TNVNCCappuccinoStatePassword                = @"password";
 TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 
 
-
-@implementation TNVNCView : CPView
+/*! This view 
+*/
+@implementation TNVNCView : CPControl
 {
-    BOOL        _encrypted  @accessors(setter=setEncrypted:, getter=isEncrypted);
-    BOOL        _trueColor  @accessors(setter=setTrueColor:, getter=isTrueColor);
-    CPString    _host       @accessors(property=host);
-    CPString    _message    @accessors(property=message);
-    CPString    _oldState   @accessors(property=oldState);
-    CPString    _password   @accessors(property=password);
-    CPString    _port       @accessors(property=port);
-    CPString    _state      @accessors(property=state);
-    id          _delegate   @accessors(property=delegate);
+    BOOL        _encrypted      @accessors(setter=setEncrypted:, getter=isEncrypted);
+    BOOL        _trueColor      @accessors(setter=setTrueColor:, getter=isTrueColor);
+    CPString    _host           @accessors(property=host);
+    CPString    _message        @accessors(property=message);
+    CPString    _oldState       @accessors(property=oldState);
+    CPString    _password       @accessors(property=password);
+    CPString    _port           @accessors(property=port);
+    CPString    _state          @accessors(property=state);
+    id          _delegate       @accessors(property=delegate);
+    CPSize      _defaultSize    @accessors(property=defaultSize);
     
     CPTextField _fieldFocusTrick;
-    id          _DOMCanvas;
     id          _DOMClipboard;
     id          _oldResponder;
 
@@ -59,21 +60,13 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _password = "";
         _state  = TNVNCCappuccinoStateDisconnected;
         _oldState = nil;
+        _defaultSize = CPSizeMake(800.0, 490.0);
         
         _fieldFocusTrick = [[CPTextField alloc] initWithFrame:CPRectMake(0,0,0,0)];
         [self addSubview:_fieldFocusTrick];
         
-        var novnc_div               = document.createElement("div");
-        novnc_div.id                = "vnc";
-        
-        var novnc_screen            = document.createElement("div");
-        novnc_screen.id             = "VNC_screen"
-        
         _DOMCanvas                  = document.createElement("canvas");
         _DOMCanvas.id               = "VNC_canvas";
-        // _DOMCanvas.width            = "800px";
-        // _DOMCanvas.height           = "600px";
-        // _DOMCanvas.style.display    = "block";
         _DOMCanvas.innerHTML        = "Canvas not supported.";
         _DOMCanvas.style.border     = "3px solid #8F8F8F";
         
@@ -86,10 +79,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
             [self unfocus];
         };
         
-        novnc_screen.appendChild(_DOMCanvas);
-        novnc_div.appendChild(novnc_screen);
-        
-        _DOMElement.appendChild(novnc_div);
+        _DOMElement.appendChild(_DOMCanvas);
     }
     
     return self;
@@ -103,6 +93,12 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 - (void)setBackgroundImage:(CPString)anImagePath
 {
     _DOMCanvas.style.backgroundImage = "url("+anImagePath+")";
+}
+
+- (void)defaultSize:(CPRect)aRect
+{
+    Canvas.canvas_default_w = aRect.width;
+    Canvas.canvas_default_h = aRect.height;
 }
 
 - (CPRect)canvasSize
@@ -129,7 +125,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 
 - (void)clear
 {
-    Canvas.clear();
+    _DOMCanvas.width = _defaultSize.width;
+    _DOMCanvas.height = _defaultSize.height;
 }
 
 - (void)focus
@@ -170,17 +167,27 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 - (IBAction)connect:(id)sender
 {
-    RFB.setEncrypt(_encrypted);
-    RFB.setTrueColor(_trueColor);
+    [self load];
     
-    RFB.setClipboardReceive(function(text){
-        [[CPPasteboard generalPasteboard] setString:text forType:CPStringPboardType];
-    });
+    RFB.setEncrypt(_encrypted);
+    CPLog.info("NOVNC: connection is encrypted ? " + _encrypted);
+    RFB.setTrueColor(_trueColor);
+    CPLog.info("NOVNC: connection is true color ? " + _trueColor);
+    
+    // RFB.setClipboardReceive(function(text){
+    //     [[CPPasteboard generalPasteboard] setString:text forType:CPStringPboardType];
+    // });
     
     RFB.setUpdateState(function(state, oldstate, msg){
         _state      = state;
         _oldState   = oldstate;
         _message    = msg;
+        
+        if (_state == TNVNCCappuccinoStateNormal)
+            [self focus];
+        else
+            [self unfocus];
+        
         if (_delegate && ([_delegate respondsToSelector:@selector(vncView:updateState:message:)]))
             [_delegate vncView:self updateState:state message:msg];
     });
@@ -190,6 +197,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 
 - (IBAction)disconnect:(id)sender
 {
+    CPLog.info("disconnecting VNC");
     Canvas.ctx = nil;
     RFB.disconnect();
 }
