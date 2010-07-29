@@ -6,12 +6,12 @@
  * See README.md for usage and integration instructions.
  */
 
-"use strict";
+//"use strict";
 /*jslint white: false, bitwise: false */
 /*global window, $, Util, Base64 */
 
 // Globals defined here
-// var Canvas;
+//var Canvas;
 
 // Everything namespaced inside Canvas
 Canvas = {
@@ -266,11 +266,7 @@ rescale: function (factor) {
         properties = ['transform', 'WebkitTransform', 'MozTransform', 'oTransform', null];
         origin = ['transformOrigin', 'WebkitTransformOrigin', 'MozTransformOrigin', 'oTransformOrigin', null];
         
-    c = $(Canvas.id);
-    
-    // if (!c)
-    //     return
-    
+    c = $(Canvas.id);    
     x = c.width - c.width * factor;
     y = c.height - c.height * factor;
     Canvas.scale = factor;
@@ -307,9 +303,6 @@ rescale: function (factor) {
 
 stop: function () {
     var c = $(Canvas.id);
-    
-    // if (!c)
-    //     return
     
     Util.removeEvent(document, 'keydown', Canvas.onKeyDown);
     Util.removeEvent(document, 'keyup', Canvas.onKeyUp);

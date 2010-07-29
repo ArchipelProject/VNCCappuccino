@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-VNC_native_ws = true;
+VNC_native_ws   = true;
 
 @import "Resources/util.js";
 @import "Resources/base64.js";
@@ -24,12 +24,13 @@ VNC_native_ws = true;
 @import "Resources/canvas.js";
 @import "Resources/rfb.js";
 
-// if (!window.WebSocket)
-// {
-//     WebSocket__swfLocation = "/Frameworks/NOVNCCappuccino/Resources/web-socket-js/WebSocketMain.swf";
-//     @import "Resources/web-socket-js/swfobject.js";
-//     @import "Resources/web-socket-js/FABridge.js";
-//     @import "Resources/web-socket-js/web_socket.js";
-// }
+if (!window.WebSocket)
+{
+    VNC_native_ws   = false;
+    WebSocket__swfLocation = "/Frameworks/NOVNCCappuccino/Resources/web-socket-js/WebSocketMain.swf";
+    @import "Resources/web-socket-js/swfobject.js";
+    @import "Resources/web-socket-js/FABridge.js";
+    @import "Resources/web-socket-js/web_socket.js";
+}
 
 @import "TNVNCView.j";
