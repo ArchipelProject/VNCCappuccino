@@ -24,6 +24,8 @@ VNC_native_ws   = true;
 @import "Resources/canvas.js";
 @import "Resources/rfb.js";
 
+Util.init_logging("none");
+
 if (!window.WebSocket)
 {
     VNC_native_ws   = false;
