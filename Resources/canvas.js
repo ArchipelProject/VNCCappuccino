@@ -76,10 +76,6 @@ that.get_height = function() {
     return c_height;
 };
 
-that.get_scale = function() {
-    return conf.scale;
-}
-
 //
 // Private functions
 //
@@ -405,30 +401,44 @@ that.start = function(keyPressFunc, mouseButtonFunc, mouseMoveFunc) {
 
 that.rescale = function(factor) {
     var c, tp, x, y, 
-        properties = ['transform', 'WebkitTransform', 'MozTransform', null];
+        properties = ['transform', 'WebkitTransform', 'MozTransform', 'oTransform', null],
+        origin = ['transformOrigin', 'WebkitTransformOrigin', 'MozTransformOrigin', 'oTransformOrigin', null];
+        
+    if (conf.scale === factor) {
+        return;
+    }
+    
     c = conf.target;
-    tp = properties.shift();
-    while (tp) {
-        if (typeof c.style[tp] !== 'undefined') {
+    conf.scale = factor;
+    x = c.width - c.width * factor;
+    y = c.height - c.height * factor;
+    
+    //tp = properties.shift();
+    
+    if (typeof(c.style.zoom) != "undefined") {
+        c.style.zoom = conf.scale;
+        return
+    }
+        
+    while (tp = properties.shift()) {
+        if (typeof c.style[tp] != 'undefined') {
             break;
         }
-        tp = properties.shift();
     }
-
+    
+    while (tpo = origin.shift()) {
+        if (typeof c.style[tpo] != 'undefined') {
+            break;
+        }
+    }
+    
     if (tp === null) {
         Util.Debug("No scaling support");
         return;
     }
-
-    if (conf.scale === factor) {
-        //Util.Debug("Canvas already scaled to '" + factor + "'");
-        return;
-    }
-
-    conf.scale = factor;
-    x = c.width - c.width * factor;
-    y = c.height - c.height * factor;
-    c.style[tp] = "scale(" + conf.scale + ") translate(-" + x + "px, -" + y + "px)";
+    
+    c.style[tpo] = "top left";
+    c.style[tp] = "scale(" + conf.scale + ")";
 };
 
 that.resize = function(width, height, true_color) {

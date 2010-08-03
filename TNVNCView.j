@@ -46,6 +46,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     CPTextField _fieldFocusTrick;
     id          _DOMClipboard;
     id          _oldResponder;
+    id          _canvas;
+    id          _RFB;
 
 }
 
@@ -97,8 +99,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 
 - (void)defaultSize:(CPRect)aRect
 {
-    Canvas.canvas_default_w = aRect.width;
-    Canvas.canvas_default_h = aRect.height;
+    _canvas.canvas_default_w = aRect.width;
+    _canvas.canvas_default_h = aRect.height;
 }
 
 - (CPRect)canvasSize
@@ -113,71 +115,17 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 - (void)load
 {
-    RFB.load();
-}
-
-- (void)invalidate
-{
-    RFB.invalidateAllTimers();
-    [_fieldFocusTrick setStringValue:@""];
-}
-
-- (void)clear
-{
-    _DOMCanvas.width = _defaultSize.width;
-    _DOMCanvas.height = _defaultSize.height;
-}
-
-- (void)focus
-{
-    _oldResponder = [[self window] firstResponder];
-    [[self window] makeFirstResponder:_fieldFocusTrick];
-    _DOMCanvas.focus();
-    Canvas.focused = true;
-    _DOMCanvas.style.border = "3px solid #A1CAE2";
-}
-
-- (void)unfocus
-{
-    [[self window] makeFirstResponder:_oldResponder];
-    Canvas.focused = false;
-    _DOMCanvas.style.border = "3px solid #8F8F8F";
-}
-
-
-
-/*
-    Zoom
-*/
-- (float)zoom
-{
-    return Canvas.scale
-}
-
-- (void)setZoom:(int)aZoomFactor
-{
-    Canvas.rescale(aZoomFactor)
-}
-
-
-
-/*
-    Controls
-*/
-- (IBAction)connect:(id)sender
-{
-    [self load];
+    CPLog.info("loading noVNC");
     
-    RFB.setEncrypt(_encrypted);
-    CPLog.info("NOVNC: connection is encrypted ? " + _encrypted);
-    RFB.setTrueColor(_trueColor);
-    CPLog.info("NOVNC: connection is true color ? " + _trueColor);
+    _RFB = RFB({"target": "VNC_canvas"});
+    _RFB.init();
+    _canvas = _RFB.get_canvas();
     
-    // RFB.setClipboardReceive(function(text){
-    //     [[CPPasteboard generalPasteboard] setString:text forType:CPStringPboardType];
-    // });
+    _RFB.set_encrypt(_encrypted);
+    _RFB.set_true_color(_trueColor);
     
-    RFB.setUpdateState(function(state, oldstate, msg){
+    _RFB.set_updateState(function(rfb, state, oldstate, msg){
+        CPLog.info("noVNC state changed from " + oldstate + " to " + state);
         _state      = state;
         _oldState   = oldstate;
         _message    = msg;
@@ -190,31 +138,83 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         if (_delegate && ([_delegate respondsToSelector:@selector(vncView:updateState:message:)]))
             [_delegate vncView:self updateState:state message:msg];
     });
-    
-    RFB.connect(_host, _port, _password);
+    CPLog.info("noVNC loaded");
+}
+
+- (void)invalidate
+{
+    //_RFB.invalidateAllTimers();
+    [_fieldFocusTrick setStringValue:@""];
+}
+
+- (void)clear
+{
+    _DOMCanvas.width = _defaultSize.width;
+    _DOMCanvas.height = _defaultSize.height;
+}
+
+- (void)focus
+{
+    if (_canvas)
+    {
+        _oldResponder = [[self window] firstResponder];
+        [[self window] makeFirstResponder:_fieldFocusTrick];
+        _canvas.set_focused(YES);
+        _DOMCanvas.style.border = "3px solid #A1CAE2";
+    }
+}
+
+- (void)unfocus
+{
+    if (_canvas)
+    {
+        [[self window] makeFirstResponder:_oldResponder];
+        _canvas.set_focused(NO);
+        _DOMCanvas.style.border = "3px solid #8F8F8F";
+    }
+}
+
+
+
+/*
+    Zoom
+*/
+- (float)zoom
+{
+    if (_canvas)
+        return _canvas.get_scale()
+}
+
+- (void)setZoom:(int)aZoomFactor
+{
+    if (_canvas)
+        _canvas.rescale(aZoomFactor);
+}
+
+
+
+/*
+    Controls
+*/
+- (IBAction)connect:(id)sender
+{
+    CPLog.info("connecting noVNC");
+    _RFB.connect(_host, _port, _password);
 }
 
 - (IBAction)disconnect:(id)sender
 {
-    CPLog.info("disconnecting VNC");
-    Canvas.ctx = nil;
-    RFB.disconnect();
+    CPLog.info("disconnecting noVNC");
+    _canvas.set_ctx = nil;
+    _RFB.disconnect();
 }
 
 - (void)sendPassword:(CPString)aPassword
 {
-    RFB.sendPassword(aPassword);
+    CPLog.info("sending password to noVNC");
+    _RFB.sendPassword(aPassword);
     _password = aPassword;
 }
-
-- (IBAction)sendLocalPasteboard:(id)sender
-{
-    var data = [[CPPasteboard generalPasteboard] stringForType:CPStringPboardType];
-    
-    if (data)
-        RFB.clipboardPasteFrom("test");
-}
-
 
 @end
 
