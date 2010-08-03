@@ -120,7 +120,6 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     RFB.invalidateAllTimers();
     [_fieldFocusTrick setStringValue:@""];
-    //Canvas.clear();
 }
 
 - (void)clear
