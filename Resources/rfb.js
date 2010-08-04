@@ -139,6 +139,8 @@ Util.conf_default(conf, that, 'true_color',     true, true);
 Util.conf_default(conf, that, 'b64encode',      true, true);
 Util.conf_default(conf, that, 'local_cursor',   true, true);
 
+Util.conf_default(conf, that, 'focusContainer', document);
+
 // time to wait for connection
 Util.conf_default(conf, that, 'connectTimeout', 2000);
 // frequency to check for send/receive
@@ -194,7 +196,7 @@ function constructor() {
     }
     // Initialize canvas
     try {
-        canvas = new Canvas({'target': conf.target});
+        canvas = new Canvas({'target': conf.target, 'focusContainer': conf.focusContainer});
     } catch (exc) {
         Util.Error("Canvas exception: " + exc);
         updateState('fatal', "No working Canvas");
