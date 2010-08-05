@@ -472,7 +472,7 @@ function handle_message() {
             // true means we can continue processing
             Util.Debug("More data to process");
             // Give other events a chance to run
-            setTimeout(handle_message, 10);
+            setTimeout(handle_message, 1);
         }
         break;
     default:
