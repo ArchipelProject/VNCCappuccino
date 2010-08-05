@@ -43,7 +43,6 @@ Util.conf_default(conf, that, 'true_color', true);
 Util.conf_default(conf, that, 'focused', true);
 Util.conf_default(conf, that, 'colourMap', []);
 Util.conf_default(conf, that, 'scale', 1);
-Util.conf_default(conf, that, 'focusContainer', document);
 
 // Override some specific getters/setters
 that.set_prefer_js = function(val) {
