@@ -26,13 +26,13 @@ VNC_native_ws   = true;
 
 Util.init_logging("none");
 
-if (!window.WebSocket)
-{
-    VNC_native_ws   = false;
-    WebSocket__swfLocation = "/Frameworks/NOVNCCappuccino/Resources/web-socket-js/WebSocketMain.swf";
-    @import "Resources/web-socket-js/swfobject.js";
-    @import "Resources/web-socket-js/FABridge.js";
-    @import "Resources/web-socket-js/web_socket.js";
-}
+// if (!window.WebSocket)
+// {
+//     VNC_native_ws   = false;
+        WebSocket__swfLocation = "/Frameworks/NOVNCCappuccino/Resources/web-socket-js/WebSocketMain.swf";
+//     @import "Resources/web-socket-js/swfobject.js";
+//     @import "Resources/web-socket-js/FABridge.js";
+//     @import "Resources/web-socket-js/web_socket.js";
+// }
 
 @import "TNVNCView.j";

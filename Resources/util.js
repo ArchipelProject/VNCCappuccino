@@ -134,10 +134,6 @@ Util.init_logging = function (level) {
             throw("invalid logging type '" + level + "'");
     }
 };
-// Initialize logging level
-Util.init_logging( (document.location.href.match(
-                    /logging=([A-Za-z0-9\._\-]*)/) ||
-                    ['', 'warn'])[1] );
 
 Util.dirObj = function (obj, depth, parent) {
     var i, msg = "", val = "";
@@ -159,13 +155,6 @@ Util.dirObj = function (obj, depth, parent) {
         }
     }
     return msg;
-};
-
-// Read a query string variable
-Util.getQueryVar = function(name, defVal) {
-    var re = new RegExp('[?][^#]*' + name + '=([^&#]*)');
-    if (typeof defVal === 'undefined') { defVal = null; }
-    return (document.location.href.match(re) || ['',defVal])[1];
 };
 
 // Set defaults for Crockford style function namespaces

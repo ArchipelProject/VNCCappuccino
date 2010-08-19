@@ -354,9 +354,7 @@ updateState = function(state, statusMsg) {
 
         if (canvas && canvas.getContext()) {
             canvas.stop();
-            if (! /__debug__$/i.test(document.location.href)) {
-                canvas.clear();
-            }
+            canvas.clear();
         }
 
         show_timings();
@@ -1565,21 +1563,8 @@ that.init = function () {
     init_vars();
 
     /* Check web-socket-js if no builtin WebSocket support */
-    if (VNC_native_ws) {
-        Util.Info("Using native WebSockets");
-        updateState('loaded', 'noVNC ready (using native WebSockets)');
-    } else {
-        Util.Warn("Using web-socket-js flash bridge");
-        if ((! Util.Flash) ||
-            (Util.Flash.version < 9)) {
-            updateState('fatal', "WebSockets or Adobe Flash is required");
-        } else if (document.location.href.substr(0, 7) === "file://") {
-            updateState('fatal',
-                    "'file://' URL is incompatible with Adobe Flash");
-        } else {
-            updateState('loaded', 'noVNC ready (using Flash WebSockets emulation)');
-        }
-    }
+    Util.Info("Using native WebSockets");
+    updateState('loaded', 'noVNC ready (using native WebSockets)');
 };
 
 that.connect = function(host, port, password) {
