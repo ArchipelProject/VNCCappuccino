@@ -42,8 +42,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     CPString    _port               @accessors(property=port);
     CPString    _state              @accessors(property=state);
     id          _delegate           @accessors(property=delegate);
-
-    id          _focusContainer    @accessors(property=focusContainer);
+    id          _focusContainer     @accessors(property=focusContainer);
+    
     CPString    _canvasID;
     CPTextField _fieldFocusTrick;
     float       _zoom;
@@ -79,7 +79,6 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _DOMCanvas.id               = _canvasID;
         _DOMCanvas.innerHTML        = "Canvas not supported.";
         _DOMCanvas.style.border     = "3px solid #8F8F8F";
-        
         
         _DOMCanvas.onmouseover    = function(e){
             [self focus];
@@ -142,20 +141,22 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _oldState   = oldstate;
         _message    = msg;
         
-        // if (_state == TNVNCCappuccinoStateNormal)
-        //     [self focus];
-        // else
-        //     [self unfocus];
-        
         if (_delegate && ([_delegate respondsToSelector:@selector(vncView:updateState:message:)]))
             [_delegate vncView:self updateState:state message:msg];
     });
+    
+    _RFB.set_clipboardReceive(function(rfb, text){
+        CPLog.info("noVNC received clipbiard text: " + text);
+        
+        if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didReceivePasteBoardText:)]))
+            [_delegate vncView:self didReceivePasteBoardText:text]
+    });
+    
     CPLog.info("noVNC loaded");
 }
 
 - (void)invalidate
 {
-    //_RFB.invalidateAllTimers();
     [_fieldFocusTrick setStringValue:@""];
 }
 
@@ -231,5 +232,17 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     _password = aPassword;
 }
 
+
+- (IBAction)sendCtrlAltDel:(id)sender
+{
+    if ((_RFB) && (_state == TNVNCCappuccinoStateNormal))
+        _RFB.sendCtrlAltDel();
+}
+
+- (void)sendTextToPasteboard:(CPString)aText
+{
+    if ((_RFB) && (_state == TNVNCCappuccinoStateNormal))
+        _RFB.clipboardPasteFrom(aText);
+}
 @end
 
