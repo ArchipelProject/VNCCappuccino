@@ -22,6 +22,7 @@
 TNVNCCappuccinoStateNormal                  = @"normal";
 TNVNCCappuccinoStateFailed                  = @"failed";
 TNVNCCappuccinoStateFatal                   = @"fatal";
+TNVNCCappuccinoStateDisconnect              = @"disconnect";
 TNVNCCappuccinoStateDisconnected            = @"disconnected";
 TNVNCCappuccinoStateLoaded                  = @"loaded";
 TNVNCCappuccinoStatePassword                = @"password";
@@ -32,17 +33,20 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 @implementation TNVNCView : CPControl
 {
-    BOOL        _encrypted          @accessors(setter=setEncrypted:, getter=isEncrypted);
-    BOOL        _trueColor          @accessors(setter=setTrueColor:, getter=isTrueColor);
-    CPSize      _defaultSize        @accessors(property=defaultSize);
-    CPString    _host               @accessors(property=host);
-    CPString    _message            @accessors(property=message);
-    CPString    _oldState           @accessors(property=oldState);
-    CPString    _password           @accessors(property=password);
-    CPString    _port               @accessors(property=port);
-    CPString    _state              @accessors(property=state);
-    id          _delegate           @accessors(property=delegate);
-    id          _focusContainer     @accessors(property=focusContainer);
+    BOOL        _encrypted              @accessors(setter=setEncrypted:, getter=isEncrypted);
+    BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
+    BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
+    int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
+    int         _checkRate              @accessors(property=checkRate);
+    CPSize      _defaultSize            @accessors(property=defaultSize);
+    CPString    _host                   @accessors(property=host);
+    CPString    _message                @accessors(property=message);
+    CPString    _oldState               @accessors(property=oldState);
+    CPString    _password               @accessors(property=password);
+    CPString    _port                   @accessors(property=port);
+    CPString    _state                  @accessors(property=state);
+    id          _delegate               @accessors(property=delegate);
+    id          _focusContainer         @accessors(property=focusContainer);
     
     CPString    _canvasID;
     CPTextField _fieldFocusTrick;
@@ -60,17 +64,19 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     if (self = [super initWithFrame:aFrame])
     {
-        _host               = nil;
-        _port               = 5900;
-        _encrypted          = NO;
-        _trueColor          = YES;
-        _password           = "";
-        _state              = TNVNCCappuccinoStateDisconnected;
-        _oldState           = nil;
-        _defaultSize        = CPSizeMake(800.0, 490.0);
-        _zoom               = 1;
-        _canvasID           = [CPString UUID];
-        _focusContainer     = document
+        _host                   = nil;
+        _port                   = 5900;
+        _encrypted              = NO;
+        _trueColor              = YES;
+        _frameBufferRequestRate = 1413;
+        _checkRate              = 217;
+        _password               = "";
+        _state                  = TNVNCCappuccinoStateDisconnected;
+        _oldState               = nil;
+        _defaultSize            = CPSizeMake(800.0, 490.0);
+        _zoom                   = 1;
+        _canvasID               = [CPString UUID];
+        _focusContainer         = document
         
         _fieldFocusTrick = [[CPTextField alloc] initWithFrame:CPRectMake(0,0,0,0)];
         [self addSubview:_fieldFocusTrick];
@@ -124,8 +130,11 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     CPLog.info("loading noVNC");
     
-    _RFB = RFB({"target": _DOMCanvas, "focusContainer": _focusContainer});
-    _RFB.init();
+    _RFB = RFB({"target":           _DOMCanvas, 
+                "focusContainer":   _focusContainer,
+                "fbu_req_rate":     _frameBufferRequestRate,
+                "check_rate":       _checkRate
+                });
     
     _canvas = _RFB.get_canvas();
     if (!_canvas)
@@ -146,7 +155,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     });
     
     _RFB.set_clipboardReceive(function(rfb, text){
-        CPLog.info("noVNC received clipbiard text: " + text);
+        CPLog.info("noVNC received clipboard text: " + text);
         
         if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didReceivePasteBoardText:)]))
             [_delegate vncView:self didReceivePasteBoardText:text]
@@ -222,7 +231,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     CPLog.info("disconnecting noVNC");
     _canvas.set_ctx = nil;
-    _RFB.disconnect();
+    _RFB.force_disconnect();
 }
 
 - (void)sendPassword:(CPString)aPassword

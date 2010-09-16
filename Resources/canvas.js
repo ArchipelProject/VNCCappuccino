@@ -1,7 +1,7 @@
 /*
  * noVNC: HTML5 VNC client
  * Copyright (C) 2010 Joel Martin
- * Licensed under LGPL-3 (see LICENSE.LGPL-3)
+ * Licensed under LGPL-3 (see LICENSE.txt)
  *
  * See README.md for usage and integration instructions.
  */
@@ -43,6 +43,7 @@ Util.conf_default(conf, that, 'true_color', true);
 Util.conf_default(conf, that, 'focused', true);
 Util.conf_default(conf, that, 'colourMap', []);
 Util.conf_default(conf, that, 'scale', 1);
+Util.conf_default(conf, that, 'focusContainer', document);
 
 // Override some specific getters/setters
 that.set_prefer_js = function(val) {
@@ -355,12 +356,10 @@ function onMouseDisable(e) {
         return true;
     }
     evt = (e ? e : window.event);
-    pos = Util.getPosition(conf.target);
+    pos = Util.getEventPosition(e, conf.target, conf.scale);
     /* Stop propagation if inside canvas area */
-    if ((evt.clientX >= pos.x) &&
-        (evt.clientY >= pos.y) &&
-        (evt.clientX < (pos.x + c_width)) &&
-        (evt.clientY < (pos.y + c_height))) {
+    if ((pos.x >= 0) && (pos.y >= 0) &&
+        (pos.x < c_width) && (pos.y < c_height)) {
         //Util.Debug("mouse event disabled");
         Util.stopEvent(e);
         return false;
@@ -665,6 +664,18 @@ that.changeCursor = function(pixels, mask, hotx, hoty, w, h) {
         Util.Warn("changeCursor called but no cursor data URI support");
         return;
     }
+
+    // Push multi-byte little-endian values
+    cur.push16le = function (num) {
+        this.push((num     ) & 0xFF,
+                  (num >> 8) & 0xFF  );
+    };
+    cur.push32le = function (num) {
+        this.push((num      ) & 0xFF,
+                  (num >>  8) & 0xFF,
+                  (num >> 16) & 0xFF,
+                  (num >> 24) & 0xFF  );
+    };
 
     cmap = conf.colourMap;
     IHDRsz = 40;

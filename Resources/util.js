@@ -1,7 +1,7 @@
 /*
  * noVNC: HTML5 VNC client
  * Copyright (C) 2010 Joel Martin
- * Licensed under LGPL-3 (see LICENSE.LGPL-3)
+ * Licensed under LGPL-3 (see LICENSE.txt)
  *
  * See README.md for usage and integration instructions.
  */
@@ -34,67 +34,19 @@ if (!window.$) {
  * Make arrays quack
  */
 
-Array.prototype.shift8 = function () {
-    return this.shift();
-};
 Array.prototype.push8 = function (num) {
     this.push(num & 0xFF);
 };
 
-Array.prototype.shift16 = function () {
-    return (this.shift() << 8) +
-           (this.shift()     );
-};
 Array.prototype.push16 = function (num) {
     this.push((num >> 8) & 0xFF,
               (num     ) & 0xFF  );
-};
-Array.prototype.push16le = function (num) {
-    this.push((num     ) & 0xFF,
-              (num >> 8) & 0xFF  );
-};
-
-
-Array.prototype.shift32 = function () {
-    return (this.shift() << 24) +
-           (this.shift() << 16) +
-           (this.shift() <<  8) +
-           (this.shift()      );
-};
-Array.prototype.get32 = function (off) {
-    return (this[off    ] << 24) +
-           (this[off + 1] << 16) +
-           (this[off + 2] <<  8) +
-           (this[off + 3]      );
 };
 Array.prototype.push32 = function (num) {
     this.push((num >> 24) & 0xFF,
               (num >> 16) & 0xFF,
               (num >>  8) & 0xFF,
               (num      ) & 0xFF  );
-};
-Array.prototype.push32le = function (num) {
-    this.push((num      ) & 0xFF,
-              (num >>  8) & 0xFF,
-              (num >> 16) & 0xFF,
-              (num >> 24) & 0xFF  );
-};
-
-
-Array.prototype.shiftStr = function (len) {
-    var arr = this.splice(0, len);
-    return arr.map(function (num) {
-            return String.fromCharCode(num); } ).join('');
-};
-Array.prototype.pushStr = function (str) {
-    var i, n = str.length;
-    for (i=0; i < n; i+=1) {
-        this.push(str.charCodeAt(i));
-    }
-};
-
-Array.prototype.shiftBytes = function (len) {
-    return this.splice(0, len);
 };
 
 /* 
@@ -134,6 +86,10 @@ Util.init_logging = function (level) {
             throw("invalid logging type '" + level + "'");
     }
 };
+// Initialize logging level
+Util.init_logging( (document.location.href.match(
+                    /logging=([A-Za-z0-9\._\-]*)/) ||
+                    ['', 'warn'])[1] );
 
 Util.dirObj = function (obj, depth, parent) {
     var i, msg = "", val = "";
@@ -155,6 +111,13 @@ Util.dirObj = function (obj, depth, parent) {
         }
     }
     return msg;
+};
+
+// Read a query string variable
+Util.getQueryVar = function(name, defVal) {
+    var re = new RegExp('[?][^#]*' + name + '=([^&#]*)');
+    if (typeof defVal === 'undefined') { defVal = null; }
+    return (document.location.href.match(re) || ['',defVal])[1];
 };
 
 // Set defaults for Crockford style function namespaces
