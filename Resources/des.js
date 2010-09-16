@@ -80,7 +80,7 @@
 //"use strict";
 /*jslint white: false, bitwise: false, plusplus: false */
 
-var DES = {
+DES = {
 
     // Tables, permutations, S-boxes, etc.
 
