@@ -3,10 +3,9 @@
 
 <h3>What is VNCCappuccino ?</h3>
 ---------------------------
-<p>This is a set of classes uses to bind the pure Javascript library 
+<p>VNCCappuccino is a set of classes uses to bind the pure Javascript library 
 NoVNC Library. This allows to use pure Javascript implementation or VNC protocol. 
-This Library is used by Archipel Project, which is not 
-public at this time. This library is released under AGPL license. Feel 
+This Library is used by Archipel Project. This library is released under AGPL license. Feel 
 free to use it or improve it.</p>
 
 <h3>Quick Start</h3>
