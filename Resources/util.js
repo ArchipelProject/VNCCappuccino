@@ -59,7 +59,16 @@ Array.prototype.push32 = function (num) {
  * Logging/debug routines
  */
 
+Util._log_level = 'warn';
 Util.init_logging = function (level) {
+    if (typeof level === 'undefined') {
+        Util._log_level = (document.location.href.match(
+                /logging=([A-Za-z0-9\._\-]*)/) ||
+                ['', Util._log_level])[1];
+        level = Util._log_level;
+    } else {
+        Util._log_level = level;
+    }
     if (typeof window.console === "undefined") {
         if (typeof window.opera !== "undefined") {
             window.console = {
@@ -86,10 +95,11 @@ Util.init_logging = function (level) {
             throw("invalid logging type '" + level + "'");
     }
 };
+Util.get_logging = function () {
+        return Util._log_level;
+    }
 // Initialize logging level
-Util.init_logging( (document.location.href.match(
-                    /logging=([A-Za-z0-9\._\-]*)/) ||
-                    ['', 'warn'])[1] );
+Util.init_logging();
 
 Util.dirObj = function (obj, depth, parent) {
     var i, msg = "", val = "";
@@ -121,10 +131,9 @@ Util.getQueryVar = function(name, defVal) {
 };
 
 // Set defaults for Crockford style function namespaces
-Util.conf_default = function(cfg, api, v, val, force_bool) {
-    if (typeof cfg[v] === 'undefined') {
-        cfg[v] = val;
-    }
+Util.conf_default = function(cfg, api, v, type, defval, desc) {
+    // Description
+    api['get_' + v + '_desc'] = desc;
     // Default getter
     if (typeof api['get_' + v] === 'undefined') {
         api['get_' + v] = function () {
@@ -134,15 +143,25 @@ Util.conf_default = function(cfg, api, v, val, force_bool) {
     // Default setter
     if (typeof api['set_' + v] === 'undefined') {
         api['set_' + v] = function (val) {
-                if (force_bool) {
+                if (type in {'boolean':1, 'bool':1}) {
                     if ((!val) || (val in {'0':1, 'no':1, 'false':1})) {
                         val = false;
                     } else {
                         val = true;
                     }
+                } else if (type in {'integer':1, 'int':1}) {
+                    val = parseInt(val, 10);
                 }
                 cfg[v] = val;
             };
+    }
+
+    if (typeof cfg[v] === 'undefined') {
+        // Set to default
+        api['set_' + v](defval);
+    } else {
+        // Coerce existing setting to the right type
+        api['set_' + v](cfg[v]);
     }
 };
 
@@ -234,7 +253,7 @@ Util.Engine = {
     //'webkit': (function() {
     //        return ((typeof navigator.taintEnabled !== "unknown") && navigator.taintEnabled) ? false : ((Util.Features.xpath) ? ((Util.Features.query) ? 525 : 420) : 419); }()),
     'gecko': (function() {
-            return (!document.getBoxObjectFor && !window.mozInnerScreenX) ? false : ((document.getElementsByClassName) ? 19 : 18); }())
+            return (!document.getBoxObjectFor && window.mozInnerScreenX == null) ? false : ((document.getElementsByClassName) ? 19 : 18); }())
 };
 
 Util.Flash = (function(){

@@ -31,19 +31,19 @@ var that           = {},         // Public API interface
     c_mouseMove    = null;
 
 
-// Capability settings, default can be overridden
-Util.conf_default(conf, that, 'prefer_js', null);
-Util.conf_default(conf, that, 'cursor_uri', null);
-
 // Configuration settings
-Util.conf_default(conf, that, 'target', null);
-// Area that traps keyboard input
-Util.conf_default(conf, that, 'focusContainer', document);
-Util.conf_default(conf, that, 'true_color', true);
-Util.conf_default(conf, that, 'focused', true);
-Util.conf_default(conf, that, 'colourMap', []);
-Util.conf_default(conf, that, 'scale', 1);
-Util.conf_default(conf, that, 'focusContainer', document);
+function cdef(v, type, defval, desc) {
+    Util.conf_default(conf, that, v, type, defval, desc); }
+
+// Capability settings, default can be overridden
+cdef('prefer_js',      'raw', null, 'Prefer Javascript over canvas methods');
+cdef('cursor_uri',     'raw', null, 'Can we render cursor using data URI');
+cdef('target',         'dom',  null, 'Canvas element for VNC viewport');
+cdef('focusContainer', 'dom',  document, 'DOM element that traps keyboard input');
+cdef('true_color',     'bool', true, 'Request true color pixel data');
+cdef('focused',        'bool', true, 'Capture and send key strokes');
+cdef('colourMap',      'raw',  [], 'Colour map array (not true color)');
+cdef('scale',          'float', 1, 'VNC viewport scale factor');
 
 // Override some specific getters/setters
 that.set_prefer_js = function(val) {
@@ -88,7 +88,7 @@ function constructor() {
     Util.Debug(">> Canvas.init");
 
     var c, ctx, imgTest, tval, i, curDat, curSave,
-        has_imageData = false;
+        has_imageData = false, UE = Util.Engine;
 
     if (! conf.target) { throw("target must be set"); }
 
@@ -102,6 +102,11 @@ function constructor() {
 
     if (! conf.ctx) { conf.ctx = c.getContext('2d'); }
     ctx = conf.ctx;
+
+    if (UE.gecko) { Util.Debug("Browser: gecko " + UE.gecko); }
+    if (UE.webkit) { Util.Debug("Browser: webkit " + UE.webkit); }
+    if (UE.trident) { Util.Debug("Browser: webkit " + UE.trident); }
+    if (UE.presto) { Util.Debug("Browser: webkit " + UE.presto); }
 
     that.clear();
 
