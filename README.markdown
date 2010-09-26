@@ -12,4 +12,3 @@ free to use it or improve it.
 Simply include the VNCCappuccino framework in your Frameworks directory and include NOVNCCappuccino.j
 
 	@import <VNCCappuccino/VNCCappuccino.j>
-
