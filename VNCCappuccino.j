@@ -25,14 +25,21 @@ VNC_native_ws   = true;
 @import "Resources/rfb.js";
 
 Util.init_logging("none");
-
-// if (!window.WebSocket)
-// {
-//     VNC_native_ws   = false;
-        WebSocket__swfLocation = "/Frameworks/NOVNCCappuccino/Resources/web-socket-js/WebSocketMain.swf";
-//     @import "Resources/web-socket-js/swfobject.js";
-//     @import "Resources/web-socket-js/FABridge.js";
-//     @import "Resources/web-socket-js/web_socket.js";
-// }
+WebSocket__swfLocation = "/Frameworks/NOVNCCappuccino/Resources/web-socket-js/WebSocketMain.swf";
 
 @import "TNVNCView.j";
+
+/*! @mainpage
+    VNCCappuccino is distributed under the @ref license "AGPL".
+
+    @htmlonly <pre>@endhtmlonly
+    @htmlinclude README
+    @htmlonly </pre>@endhtmlonly
+
+    @page license License
+    @htmlonly <pre>@endhtmlonly
+    @htmlinclude LICENSE
+    @htmlonly </pre>@endhtmlonly
+
+    @defgroup vnccappuccino VNCCappuccino
+*/
