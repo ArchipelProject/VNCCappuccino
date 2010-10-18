@@ -15,25 +15,26 @@
  * 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 
 var ENV = require("system").env,
     FILE = require("file"),
 	OS = require("os"),
-    task = require("jake").task,
-    FileList = require("jake").FileList,
-    app = require("cappuccino/jake").app,
+	JAKE = require("jake"),
+    task = JAKE.task,
+    CLEAN = require("jake/clean").CLEAN,
+    FileList = JAKE.FileList,
+    framework = require("cappuccino/jake").framework,
     configuration = ENV["CONFIG"] || ENV["CONFIGURATION"] || ENV["c"] || "Release";
 
-app ("VNCCappuccino", function(task)
+framework ("VNCCappuccino", function(task)
 {
     task.setBuildIntermediatesPath(FILE.join("Build", "VNCCappuccino.build", configuration));
     task.setBuildPath(FILE.join("Build", configuration));
 
     task.setProductName("VNCCappuccino");
-    task.setIdentifier("org.archipelproject.VNCCappuccino");
+    task.setIdentifier("org.archipelpoject.vnccappuccino");
     task.setVersion("1.0");
     task.setAuthor("Antoine Mercadal");
     task.setEmail("antoine.mercadal @nospam@ inframonde.eu");
@@ -48,12 +49,36 @@ app ("VNCCappuccino", function(task)
         task.setCompilerFlags("-O");
 });
 
+task("build", ["VNCCappuccino"]);
 
-task ("documentation", function(task)
+task("debug", function()
+{
+    ENV["CONFIG"] = "Debug"
+    JAKE.subjake(["."], "build", ENV);
+});
+
+task("release", function()
+{
+    ENV["CONFIG"] = "Release"
+    JAKE.subjake(["."], "build", ENV);
+});
+
+task ("documentation", function()
 {
    OS.system("doxygen VNCCappuccino.doxygen")
 });
 
-task ("default", ["VNCCappuccino"]);
-task ("docs", ["documentation"]);
-task ("all", ["VNCCappuccino", "documentation"]);
+task("test", function()
+{
+    var tests = new FileList('Test/*Test.j');
+    var cmd = ["ojtest"].concat(tests.items());
+    var cmdString = cmd.map(OS.enquote).join(" ");
+
+    var code = OS.system(cmdString);
+    if (code !== 0)
+        OS.exit(code);
+});
+
+task ("default", ["release"]);
+task ("docs", ["release", "documentation"]);
+task ("all", ["release", "debug", "documentation"]);
