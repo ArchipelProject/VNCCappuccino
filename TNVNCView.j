@@ -225,6 +225,12 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
             [_delegate vncView:self didReceivePasteBoardText:text]
     });
 
+    _RFB.set_desktopSizeChanged(function(rfb, newSize){
+        if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
+            [_delegate vncView:self didDesktopSizeChange:CPSizeMake(newSize.width, newSize.height)];
+
+    });
+
     CPLog.info("noVNC loaded");
 }
 
