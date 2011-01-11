@@ -112,6 +112,9 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     id          _RFB;
 }
 
+#pragma mark -
+#pragma mark Initialization
+
 /*! intialize the VNCView in the given frame
     @param aFrame CPRect representing the frame
     @return the initialized TNVNCView
@@ -156,6 +159,9 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     return self;
 }
 
+
+#pragma mark -
+#pragma mark Utilities
 
 /*! allow to set an a image (not a CPImage)
     in the background of the VNCView.
@@ -292,6 +298,29 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _canvas.rescale(aZoomFactor);
 }
 
+/*! send a password to the VNC Server
+    use this function in case of state TNVNCCappuccinoStatePassword.
+    @param aPassword CPString containing the password
+*/
+- (void)sendPassword:(CPString)aPassword
+{
+    CPLog.info("sending password to noVNC");
+    _RFB.sendPassword(aPassword);
+    _password = aPassword;
+}
+
+/*! send the given text to the VNC Server pasteboard
+    @param aText the text to send to the distant server
+*/
+- (void)sendTextToPasteboard:(CPString)aText
+{
+    if ((_RFB) && (_state == TNVNCCappuccinoStateNormal))
+        _RFB.clipboardPasteFrom(aText);
+}
+
+
+#pragma mark -
+#pragma mark Actions
 
 /*! IBAction that connects to the parametrized VNC Server
     @param aSender the origin control of action
@@ -314,33 +343,22 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     _RFB.force_disconnect();
 }
 
-/*! send a password to the VNC Server
-    use this function in case of state TNVNCCappuccinoStatePassword.
-    @param aPassword CPString containing the password
+/*! display in fullscreen if support
+    @param shouldBeFullScreen if true, display full screen
 */
-- (void)sendPassword:(CPString)aPassword
+- (void)setFullScreen:(BOOL)shouldBeFullScreen
 {
-    CPLog.info("sending password to noVNC");
-    _RFB.sendPassword(aPassword);
-    _password = aPassword;
+    if (!_DOMElement.webkitRequestFullScreen)
+    {
+        CPLog.warn("you need last version of webkit to support fullscreen");
+        return;
+    }
+
+    if (shouldBeFullScreen)
+        _DOMElement.webkitRequestFullScreen();
+    else
+        _DOMElement.webkitCancelFullScreen();
 }
 
-/*! IBAction that sends CTRL+ALT+DEL key combination to the VNC Server
-    @param aSender the origin control of action
-*/
-- (IBAction)sendCtrlAltDel:(id)sender
-{
-    if ((_RFB) && (_state == TNVNCCappuccinoStateNormal))
-        _RFB.sendCtrlAltDel();
-}
-
-/*! send the given text to the VNC Server pasteboard
-    @param aText the text to send to the distant server
-*/
-- (void)sendTextToPasteboard:(CPString)aText
-{
-    if ((_RFB) && (_state == TNVNCCappuccinoStateNormal))
-        _RFB.clipboardPasteFrom(aText);
-}
 @end
 
