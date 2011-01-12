@@ -101,6 +101,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     id          _focusContainer         @accessors(property=focusContainer);
     int         _checkRate              @accessors(property=checkRate);
     int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
+    BOOL        _isFullScreen           @accessors(getter=isFullScreen);
 
     CPString    _canvasID;
     CPTextField _fieldFocusTrick;
@@ -110,6 +111,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     id          _DOMClipboard;
     id          _oldResponder;
     id          _RFB;
+
 }
 
 #pragma mark -
@@ -135,7 +137,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _defaultSize            = CPSizeMake(800.0, 490.0);
         _zoom                   = 1;
         _canvasID               = [CPString UUID];
-        _focusContainer         = document
+        _focusContainer         = document;
+        _isFullScreen           = NO;
 
         _fieldFocusTrick = [[CPTextField alloc] initWithFrame:CPRectMake(0,0,0,0)];
         [self addSubview:_fieldFocusTrick];
@@ -348,16 +351,40 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 - (void)setFullScreen:(BOOL)shouldBeFullScreen
 {
-    if (!_DOMElement.webkitRequestFullScreen)
+    if (shouldBeFullScreen === _isFullScreen)
+        return;
+
+    var currentDOMObject = _focusContainer.getElementsByTagName("html")[0],
+        oldSize,
+        newSize;
+
+    currentDOMObject.style.height = "100%";
+
+    oldSize = CPSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight);
+
+    if (!currentDOMObject.webkitRequestFullScreen || !_focusContainer.webkitCancelFullScreen)
     {
         CPLog.warn("you need last version of webkit to support fullscreen");
         return;
     }
 
     if (shouldBeFullScreen)
-        _DOMElement.webkitRequestFullScreen();
+    {
+        currentDOMObject.webkitRequestFullScreen();
+        _isFullScreen   = YES;
+        zoomFactor      = currentDOMObject.offsetWidth / oldSize.width;
+        [self focus];
+    }
     else
-        _DOMElement.webkitCancelFullScreen();
+    {
+        _focusContainer.webkitCancelFullScreen();
+        _isFullScreen   = NO;
+        zoomFactor      = 1.0;
+    }
+
+    if (_delegate && [_delegate respondsToSelector:@selector(vncView:didBecomeFullScreen:size:zoomFactor:)])
+        [_delegate vncView:self didBecomeFullScreen:_isFullScreen size:CPSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight) zoomFactor:zoomFactor];
+
 }
 
 @end
