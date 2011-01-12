@@ -84,10 +84,13 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     the delegate can implement the following:
      - vncView:updateState:message: this message is sent to the delegate when the VNCState change
      - vncView:didReceivePasteBoardText: this message is send to the delegate when the server send the content of its pasteboard
+     - vncView:didBecomeFullScreen:size:zoomFactor: this message is sent when VNCView becomes full screen. it will pass the new size and the zoomFactor
+     - vncViewDoesNotSupportFullScreen: this message is sent when the VNCView received a setFullScreen message, but browser doesn't support it
 */
 @implementation TNVNCView : CPView
 {
     BOOL        _encrypted              @accessors(setter=setEncrypted:, getter=isEncrypted);
+    BOOL        _isFullScreen           @accessors(getter=isFullScreen);
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
     CPSize      _defaultSize            @accessors(property=defaultSize);
@@ -101,7 +104,6 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     id          _focusContainer         @accessors(property=focusContainer);
     int         _checkRate              @accessors(property=checkRate);
     int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
-    BOOL        _isFullScreen           @accessors(getter=isFullScreen);
 
     CPString    _canvasID;
     CPTextField _fieldFocusTrick;
@@ -111,7 +113,6 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     id          _DOMClipboard;
     id          _oldResponder;
     id          _RFB;
-
 }
 
 #pragma mark -
@@ -362,9 +363,14 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 
     oldSize = CPSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight);
 
-    if (!currentDOMObject.webkitRequestFullScreen || !_focusContainer.webkitCancelFullScreen)
+    if (![CPPlatform isBrowser] || !currentDOMObject.webkitRequestFullScreen || !_focusContainer.webkitCancelFullScreen)
     {
-        CPLog.warn("you need last version of webkit to support fullscreen");
+        CPLog.warn("you need last version of webkit to support fullscreen."
+                    + " use Webkit nightlies and set 'defaults write com.apple.Safari WebKitFullScreenEnabled 1' in Terminal");
+
+        if (_delegate && [_delegate respondsToSelector:@selector(vncViewDoesNotSupportFullScreen:)])
+            [_delegate vncViewDoesNotSupportFullScreen:self];
+
         return;
     }
 
