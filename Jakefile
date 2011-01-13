@@ -26,7 +26,7 @@ var ENV = require("system").env,
     CLEAN = require("jake/clean").CLEAN,
     FileList = JAKE.FileList,
     framework = require("cappuccino/jake").framework,
-    configuration = ENV["CONFIG"] || ENV["CONFIGURATION"] || ENV["c"] || "Release";
+    configuration = ENV["CONFIGURATION"] || "Debug";
 
 framework ("VNCCappuccino", function(task)
 {
@@ -53,13 +53,13 @@ task("build", ["VNCCappuccino"]);
 
 task("debug", function()
 {
-    ENV["CONFIG"] = "Debug"
+    ENV["CONFIGURATION"] = "Debug"
     JAKE.subjake(["."], "build", ENV);
 });
 
 task("release", function()
 {
-    ENV["CONFIG"] = "Release"
+    ENV["CONFIGURATION"] = "Release"
     JAKE.subjake(["."], "build", ENV);
 });
 
