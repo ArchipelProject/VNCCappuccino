@@ -17,11 +17,13 @@
  */
 
 VNC_native_ws   = true;
+noVNC_logo      = nil;
 
 @import "Resources/util.js";
 @import "Resources/base64.js";
 @import "Resources/des.js";
 @import "Resources/canvas.js";
+@import "Resources/websock.js"
 @import "Resources/rfb.js";
 
 Util.init_logging("none");
