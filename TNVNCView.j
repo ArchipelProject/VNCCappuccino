@@ -106,6 +106,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
 
     CPString    _canvasID;
+    CPTextField _fieldFocusTrick;
     float       _zoom;
     id          _canvas;
     id          _DOMCanvas;
@@ -139,6 +140,9 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _canvasID               = [CPString UUID];
         _focusContainer         = document;
         _isFullScreen           = NO;
+
+        _fieldFocusTrick = [[CPTextField alloc] initWithFrame:CPRectMake(0,0,0,0)];
+        [self addSubview:_fieldFocusTrick];
 
         _DOMCanvas                  = _focusContainer.createElement("canvas");
         _DOMCanvas.id               = _canvasID;
@@ -263,7 +267,10 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     if (_canvas)
     {
         _canvas.set_focused(YES);
+        _oldResponder = [[self window] firstResponder];
+        [[self window] makeFirstResponder:_fieldFocusTrick];
         _DOMCanvas.style.border = "3px solid #A1CAE2";
+        _DOMCanvas.focus();
     }
 }
 
@@ -276,6 +283,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     if (_canvas)
     {
         _canvas.set_focused(NO);
+        [[self window] makeFirstResponder:_oldResponder];
         _DOMCanvas.style.border = "3px solid #8F8F8F";
     }
 }
