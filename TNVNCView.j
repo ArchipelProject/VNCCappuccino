@@ -146,10 +146,12 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _DOMCanvas.style.border     = "3px solid #8F8F8F";
 
         _DOMCanvas.onmouseover    = function(e){
+            [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
             [self focus];
         };
 
         _DOMCanvas.onmouseout     = function(e){
+            [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
             [self unfocus];
         };
 
@@ -215,6 +217,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     _RFB.set_true_color(_trueColor);
 
     _RFB.set_updateState(function(rfb, state, oldstate, msg){
+        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
         CPLog.info("noVNC state changed from " + oldstate + " to " + state);
         _state      = state;
         _oldState   = oldstate;
@@ -225,6 +228,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     });
 
     _RFB.set_clipboardReceive(function(rfb, text){
+        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
         CPLog.info("noVNC received clipboard text: " + text);
 
         if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didReceivePasteBoardText:)]))
@@ -232,6 +236,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     });
 
     _RFB.set_desktopSizeChanged(function(rfb, newSize){
+        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
         if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
             [_delegate vncView:self didDesktopSizeChange:CPSizeMake(newSize.width, newSize.height)];
 
