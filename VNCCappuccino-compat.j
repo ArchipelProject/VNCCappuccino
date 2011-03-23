@@ -19,7 +19,17 @@
 noVNC_logo      = nil;
 INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/";
 
-Websock_native   = YES;
+if (window.WebSocket)
+{
+    Websock_native   = YES;
+}
+else
+{
+    Websock_native   = NO;
+    @import "Resources/web-socket-js/swfobject.js"
+    @import "Resources/web-socket-js/FABridge.js"
+    @import "Resources/web-socket-js/web_socket.js"
+}
 
 @import "Resources/util.js";
 @import "Resources/base64.js";
