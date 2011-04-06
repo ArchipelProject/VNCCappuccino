@@ -309,7 +309,10 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     _zoom = aZoomFactor;
     if (_canvas)
+    {
         _canvas.rescale(aZoomFactor);
+        _RFB.get_mouse().set_scale(aZoomFactor);
+    }
 }
 
 /*! send a password to the VNC Server
@@ -344,7 +347,10 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     CPLog.info("connecting noVNC");
     _RFB.connect(_host, _port, _password);
     if (_canvas)
+    {
         _canvas.rescale(_zoom);
+        _RFB.get_mouse().set_scale(_zoom);
+    }
 }
 
 /*! IBAction that disconnects to the connected VNC Server
