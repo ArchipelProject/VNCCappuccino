@@ -22,6 +22,7 @@ INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/";
 Websock_native   = YES;
 
 @import "Resources/util.js";
+@import "Resources/input.js";
 @import "Resources/base64.js";
 @import "Resources/des.js";
 @import "Resources/canvas.js";

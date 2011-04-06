@@ -269,7 +269,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     if (_canvas)
     {
-        _canvas.set_focused(YES);
+        _RFB.get_keyboard().set_focused(YES);
+        _RFB.get_mouse().set_focused(YES);
         _oldResponder = [[self window] firstResponder];
         [[self window] makeFirstResponder:_fieldFocusTrick];
         _DOMCanvas.style.border = "3px solid #A1CAE2";
@@ -285,7 +286,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     if (_canvas)
     {
-        _canvas.set_focused(NO);
+        _RFB.get_keyboard().set_focused(NO);
+        _RFB.get_mouse().set_focused(NO);
         [[self window] makeFirstResponder:_oldResponder];
         _DOMCanvas.style.border = "3px solid #8F8F8F";
     }
