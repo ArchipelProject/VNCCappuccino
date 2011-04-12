@@ -335,34 +335,6 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _RFB.clipboardPasteFrom(aText);
 }
 
-
-#pragma mark -
-#pragma mark Actions
-
-/*! IBAction that connects to the parametrized VNC Server
-    @param aSender the origin control of action
-*/
-- (IBAction)connect:(id)aSender
-{
-    CPLog.info("connecting noVNC");
-    _RFB.connect(_host, _port, _password);
-    if (_canvas)
-    {
-        _canvas.rescale(_zoom);
-        _RFB.get_mouse().set_scale(_zoom);
-    }
-}
-
-/*! IBAction that disconnects to the connected VNC Server
-    @param aSender the origin control of action
-*/
-- (IBAction)disconnect:(id)sender
-{
-    CPLog.info("disconnecting noVNC");
-    _canvas.set_ctx = nil;
-    _RFB.force_disconnect();
-}
-
 /*! display in fullscreen if support
     @param shouldBeFullScreen if true, display full screen
 */
@@ -407,6 +379,43 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     if (_delegate && [_delegate respondsToSelector:@selector(vncView:didBecomeFullScreen:size:zoomFactor:)])
         [_delegate vncView:self didBecomeFullScreen:_isFullScreen size:CPSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight) zoomFactor:zoomFactor];
 
+}
+
+
+#pragma mark -
+#pragma mark Actions
+
+/*! IBAction that connects to the parametrized VNC Server
+    @param aSender the origin control of action
+*/
+- (IBAction)connect:(id)aSender
+{
+    CPLog.info("connecting noVNC");
+    _RFB.connect(_host, _port, _password);
+    if (_canvas)
+    {
+        _canvas.rescale(_zoom);
+        _RFB.get_mouse().set_scale(_zoom);
+    }
+}
+
+/*! IBAction that disconnects to the connected VNC Server
+    @param aSender the origin control of action
+*/
+- (IBAction)disconnect:(id)sender
+{
+    CPLog.info("disconnecting noVNC");
+    _canvas.set_ctx = nil;
+    _RFB.force_disconnect();
+}
+
+/*! send CTRL ALT DEL key combination to the VNC server
+    @param aSender the sender of the action
+*/
+- (void)sendCtrlAltDel:(id)aSender
+{
+    CPLog.info("sending CTRL ALT DEL noVNC");
+    _RFB.sendCtrlAltDel();
 }
 
 @end
