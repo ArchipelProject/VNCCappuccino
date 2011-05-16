@@ -25,7 +25,7 @@ Websock_native   = YES;
 @import "Resources/input.js";
 @import "Resources/base64.js";
 @import "Resources/des.js";
-@import "Resources/canvas.js";
+@import "Resources/display.js";
 @import "Resources/websock.js"
 @import "Resources/rfb.js";
 

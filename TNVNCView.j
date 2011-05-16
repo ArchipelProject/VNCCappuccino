@@ -108,15 +108,16 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     int         _checkRate              @accessors(property=checkRate);
     int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
 
-    CPString    _canvasID;
+    CPString    _displayID;
     CPTextField _fieldFocusTrick;
     float       _zoom;
-    id          _canvas;
+    id          _display;
     id          _DOMCanvas;
     id          _DOMClipboard;
     id          _oldResponder;
     id          _RFB;
 }
+
 
 #pragma mark -
 #pragma mark Initialization
@@ -140,7 +141,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _oldState               = nil;
         _defaultSize            = CPSizeMake(800.0, 490.0);
         _zoom                   = 1;
-        _canvasID               = [CPString UUID];
+        _displayID              = [CPString UUID];
         _focusContainer         = document;
         _isFullScreen           = NO;
 
@@ -148,7 +149,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         [self addSubview:_fieldFocusTrick];
 
         _DOMCanvas                  = _focusContainer.createElement("canvas");
-        _DOMCanvas.id               = _canvasID;
+        _DOMCanvas.id               = _displayID;
         _DOMCanvas.innerHTML        = "Canvas not supported.";
         _DOMCanvas.style.border     = "3px solid #8F8F8F";
 
@@ -187,8 +188,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 - (void)defaultSize:(CPRect)aRect
 {
-    _canvas.canvas_default_w = aRect.width;
-    _canvas.canvas_default_h = aRect.height;
+    _display.canvas_default_w = aRect.width;
+    _display.canvas_default_h = aRect.height;
 }
 
 /*! return the current VNCView's canvas size
@@ -215,15 +216,15 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
                 "check_rate":       _checkRate
                 });
 
-    _canvas = _RFB.get_canvas();
-    if (!_canvas)
-        [CPException raise:@"No canvas" reason:@"Cannot get canvas with ID: " + _canvasID];
+    _display = _RFB.get_display();
+    if (!_display)
+        [CPException raise:@"No canvas" reason:@"Cannot get canvas with ID: " + _displayID];
 
 
     _RFB.set_encrypt(_encrypted);
     _RFB.set_true_color(_trueColor);
 
-    _RFB.set_updateState(function(rfb, state, oldstate, msg){
+    _RFB.set_onUpdateState(function(rfb, state, oldstate, msg){
         [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
         CPLog.info("noVNC state changed from " + oldstate + " to " + state);
         _state      = state;
@@ -242,12 +243,14 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
             [_delegate vncView:self didReceivePasteBoardText:text]
     });
 
-    _RFB.set_desktopSizeChanged(function(rfb, newSize){
-        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-        if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
-            [_delegate vncView:self didDesktopSizeChange:CPSizeMake(newSize.width, newSize.height)];
-
+    _RFB.set_onFBUReceive(function(rfb, fbu) {
+        if (fbu.encodingName === 'DesktopSize') {
+            [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
+            if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
+                [_delegate vncView:self didDesktopSizeChange:CPSizeMake(fbu.width, fbu.height)];
+        }
     });
+
 
     CPLog.info("noVNC loaded");
 }
@@ -267,7 +270,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 - (void)focus
 {
-    if (_canvas)
+    if (_display)
     {
         _RFB.get_keyboard().set_focused(YES);
         _RFB.get_mouse().set_focused(YES);
@@ -284,7 +287,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 - (void)unfocus
 {
-    if (_canvas)
+    if (_display)
     {
         _RFB.get_keyboard().set_focused(NO);
         _RFB.get_mouse().set_focused(NO);
@@ -297,8 +300,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 - (float)zoom
 {
-    if (_canvas)
-        return _canvas.get_scale()
+    if (_display)
+        return _display.get_scale();
 }
 
 /*! set the zoom value
@@ -308,9 +311,9 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 - (void)setZoom:(float)aZoomFactor
 {
     _zoom = aZoomFactor;
-    if (_canvas)
+    if (_display)
     {
-        _canvas.rescale(aZoomFactor);
+        _display.set_scale(aZoomFactor);
         _RFB.get_mouse().set_scale(aZoomFactor);
     }
 }
@@ -392,9 +395,9 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     CPLog.info("connecting noVNC");
     _RFB.connect(_host, _port, _password);
-    if (_canvas)
+    if (_display)
     {
-        _canvas.rescale(_zoom);
+        _display.set_scale(_zoom);
         _RFB.get_mouse().set_scale(_zoom);
     }
 }
@@ -405,7 +408,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 - (IBAction)disconnect:(id)sender
 {
     CPLog.info("disconnecting noVNC");
-    _canvas.set_ctx = nil;
+    _display.set_ctx = nil;
     _RFB.force_disconnect();
 }
 
