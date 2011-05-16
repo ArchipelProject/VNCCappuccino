@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-noVNC_logo      = nil;
+noVNC_logo = nil;
 INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/";
 
 Websock_native   = YES;

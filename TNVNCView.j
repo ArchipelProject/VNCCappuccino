@@ -173,16 +173,6 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 #pragma mark -
 #pragma mark Utilities
 
-/*! allow to set an a image (not a CPImage)
-    in the background of the VNCView.
-
-    @param anImagePath CPString containing the path of the image
-*/
-- (void)setBackgroundImage:(CPString)anImagePath
-{
-    _DOMCanvas.style.backgroundImage = "url("+anImagePath+")";
-}
-
 /*! set the default size of the VNCView
     @param aRect CPRect representing the default frame
 */
@@ -192,14 +182,21 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     _display.canvas_default_h = aRect.height;
 }
 
-/*! return the current VNCView's canvas size
-    @return CPSize representing the canvas size
+/*! return the FBU actual size
+    @return FBU CPSize
 */
-- (CPRect)canvasSize
+- (CPSize)displaySize
 {
-    return CPSizeMake(_DOMCanvas.width, _DOMCanvas.height);
+    return CPSizeMake(_display.get_width(), _display.get_height());
 }
 
+/*! reset the size of the canvas to the defaultSize
+*/
+- (void)resetSize
+{
+    _DOMCanvas.width = _defaultSize.width;
+    _DOMCanvas.height = _defaultSize.height;
+}
 
 /*! loads the VNCView
     it will initialize the pure javascript noVNC component
@@ -251,17 +248,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         }
     });
 
-
     CPLog.info("noVNC loaded");
-}
-
-
-/*! reset the size of the canvas to the defaultSize
-*/
-- (void)resetSize
-{
-    _DOMCanvas.width = _defaultSize.width;
-    _DOMCanvas.height = _defaultSize.height;
 }
 
 /*! give the focus to the VNCView. when focused, all
