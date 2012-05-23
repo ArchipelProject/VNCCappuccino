@@ -241,7 +241,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     });
 
     _RFB.set_onFBUReceive(function(rfb, fbu) {
-        if (fbu.encodingName === 'DesktopSize') {
+        if (fbu.encodingName === 'DesktopSize')
+        {
             [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
             if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
                 [_delegate vncView:self didDesktopSizeChange:CPSizeMake(fbu.width, fbu.height)];
