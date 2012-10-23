@@ -108,13 +108,12 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     int         _checkRate              @accessors(property=checkRate);
     int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
 
+    BOOL        _isFocused;
     CPString    _displayID;
-    CPTextField _fieldFocusTrick;
     float       _zoom;
     id          _display;
     id          _DOMCanvas;
     id          _DOMClipboard;
-    id          _oldResponder;
     id          _RFB;
 }
 
@@ -145,9 +144,6 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _focusContainer         = document;
         _isFullScreen           = NO;
 
-        _fieldFocusTrick = [[CPTextField alloc] initWithFrame:CPRectMake(0,0,0,0)];
-        [self addSubview:_fieldFocusTrick];
-
         _DOMCanvas                  = _focusContainer.createElement("canvas");
         _DOMCanvas.id               = _displayID;
         _DOMCanvas.innerHTML        = "Canvas not supported.";
@@ -167,6 +163,20 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     }
 
     return self;
+}
+
+
+#pragma mark -
+#pragma mark CPResponder implementation
+
+- (void)acceptsFirstResponder
+{
+    return YES;
+}
+
+- (void)resignFirstResponder
+{
+    return !_isFocused;
 }
 
 
@@ -262,10 +272,10 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     {
         _RFB.get_keyboard().set_focused(YES);
         _RFB.get_mouse().set_focused(YES);
-        _oldResponder = [[self window] firstResponder];
-        [[self window] makeFirstResponder:_fieldFocusTrick];
         _DOMCanvas.style.border = "3px solid #A1CAE2";
         _DOMCanvas.focus();
+        _isFocused = YES;
+        [[self window] makeFirstResponder:self];
     }
 }
 
@@ -279,8 +289,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     {
         _RFB.get_keyboard().set_focused(NO);
         _RFB.get_mouse().set_focused(NO);
-        [[self window] makeFirstResponder:_oldResponder];
         _DOMCanvas.style.border = "3px solid #8F8F8F";
+        _isFocused = NO;
     }
 }
 
