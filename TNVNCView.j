@@ -159,7 +159,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
             [self unfocus];
         };
 
-        _DOMElement.appendChild(_DOMCanvas);
+        self._DOMElement.appendChild(_DOMCanvas);
     }
 
     return self;
