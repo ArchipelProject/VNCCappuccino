@@ -21,6 +21,7 @@ INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/";
 
 Websock_native   = YES;
 
+#if PLATFORM(BROWSER)
 @import "Resources/jsunzip.js";
 @import "Resources/util.js";
 @import "Resources/input.js";
@@ -29,9 +30,8 @@ Websock_native   = YES;
 @import "Resources/display.js";
 @import "Resources/websock.js"
 @import "Resources/rfb.js";
-
 Util.init_logging("none");
-
+#endif
 
 @import "TNVNCView.j";
 
