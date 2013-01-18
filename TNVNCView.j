@@ -21,6 +21,7 @@
 @import <AppKit/CPView.j>
 @import <AppKit/CPTextField.j>
 
+@global RFB
 
 
 /*!
@@ -346,7 +347,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 
     var currentDOMObject = _focusContainer.getElementsByTagName("html")[0],
         oldSize,
-        newSize;
+        newSize,
+        zoomFactor;
 
     currentDOMObject.style.height = "100%";
 
