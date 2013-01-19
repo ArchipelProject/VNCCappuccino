@@ -21,6 +21,7 @@
 @import <AppKit/CPView.j>
 @import <AppKit/CPTextField.j>
 
+#if PLATFORM(BROWSER)
 @import "Resources/jsunzip.js"
 @import "Resources/util.js"
 @import "Resources/input.js"
@@ -28,8 +29,9 @@
 @import "Resources/des.js"
 @import "Resources/display.js"
 @import "Resources/websock.js"
-@import "Resources/rfb.js"
+#endif
 
+@import "Resources/rfb.js"
 
 /*!
     @global
