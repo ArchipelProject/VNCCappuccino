@@ -104,7 +104,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     BOOL        _isFullScreen           @accessors(getter=isFullScreen);
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
-    CPSize      _defaultSize            @accessors(property=defaultSize);
+    CGSize      _defaultSize            @accessors(property=defaultSize);
     CPString    _host                   @accessors(property=host);
     CPString    _message                @accessors(property=message);
     CPString    _oldState               @accessors(property=oldState);
@@ -130,10 +130,10 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 #pragma mark Initialization
 
 /*! intialize the VNCView in the given frame
-    @param aFrame CPRect representing the frame
+    @param aFrame CGRect representing the frame
     @return the initialized TNVNCView
 */
-- (id)initWithFrame:(CPRect)aFrame
+- (id)initWithFrame:(CGRect)aFrame
 {
     if (self = [super initWithFrame:aFrame])
     {
@@ -146,7 +146,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _password               = "";
         _state                  = TNVNCCappuccinoStateDisconnected;
         _oldState               = nil;
-        _defaultSize            = CPSizeMake(800.0, 490.0);
+        _defaultSize            = CGSizeMake(800.0, 490.0);
         _zoom                   = 1;
         _displayID              = [CPString UUID];
         _focusContainer         = document;
@@ -192,20 +192,20 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 #pragma mark Utilities
 
 /*! set the default size of the VNCView
-    @param aRect CPRect representing the default frame
+    @param aRect CGRect representing the default frame
 */
-- (void)defaultSize:(CPRect)aRect
+- (void)defaultSize:(CGRect)aRect
 {
     _display.canvas_default_w = aRect.width;
     _display.canvas_default_h = aRect.height;
 }
 
 /*! return the FBU actual size
-    @return FBU CPSize
+    @return FBU CGSize
 */
-- (CPSize)displaySize
+- (CGSize)displaySize
 {
-    return CPSizeMake(_display.get_width(), _display.get_height());
+    return CGSizeMake(_display.get_width(), _display.get_height());
 }
 
 /*! reset the size of the canvas to the defaultSize
@@ -263,7 +263,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         {
             [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
             if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
-                [_delegate vncView:self didDesktopSizeChange:CPSizeMake(fbu.width, fbu.height)];
+                [_delegate vncView:self didDesktopSizeChange:CGSizeMake(fbu.width, fbu.height)];
         }
     });
 
@@ -359,7 +359,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 
     currentDOMObject.style.height = "100%";
 
-    oldSize = CPSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight);
+    oldSize = CGSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight);
 
     if (![CPPlatform isBrowser] || !currentDOMObject.webkitRequestFullScreen || !_focusContainer.webkitCancelFullScreen)
     {
@@ -387,7 +387,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     }
 
     if (_delegate && [_delegate respondsToSelector:@selector(vncView:didBecomeFullScreen:size:zoomFactor:)])
-        [_delegate vncView:self didBecomeFullScreen:_isFullScreen size:CPSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight) zoomFactor:zoomFactor];
+        [_delegate vncView:self didBecomeFullScreen:_isFullScreen size:CGSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight) zoomFactor:zoomFactor];
 
 }
 
