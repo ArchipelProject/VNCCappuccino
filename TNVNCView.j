@@ -163,17 +163,17 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _DOMCanvas.innerHTML        = "Canvas not supported.";
         _DOMCanvas.style.border     = "3px solid #8F8F8F";
 
-        _DOMCanvas.onmouseover    = function(e){
-            [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-            [self focus];
-        };
-
-        _DOMCanvas.onmouseout     = function(e){
-            [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-            [self unfocus];
-        };
-
         self._DOMElement.appendChild(_DOMCanvas);
+
+        _DOMCanvas.addEventListener("mouseover", function(e) {
+                [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
+                [self focus];
+        }, true)
+
+        _DOMCanvas.addEventListener("mouseout", function(e) {
+                [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
+                [self unfocus];
+        }, true)
     }
 
     return self;
