@@ -268,15 +268,15 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
             [_delegate vncView:self didReceivePasteBoardText:text]
     });
 
-    _RFB.set_onFBUReceive(function(rfb, fbu) {
-        if (fbu.encodingName === 'DesktopSize')
-        {
-            [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-            if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
-                [_delegate vncView:self didDesktopSizeChange:CGSizeMake(fbu.width, fbu.height)];
+    _RFB.set_onFBResize(function(rfb, width, height) {
+        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
 
+        // needs to enqueue this because noVNC calls callbacks before actually doing the changes
+        setTimeout(function() {
             [self _syncSize];
-        }
+            if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
+                [_delegate vncView:self didDesktopSizeChange:CGSizeMake(width, height)];
+        }, 0);
     });
 
     CPLog.info("noVNC loaded");
