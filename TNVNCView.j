@@ -110,6 +110,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     BOOL        _isFullScreen           @accessors(getter=isFullScreen);
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
+    BOOL        _autoResizeViewPort     @accessors(setter=setAutoResizeViewPort:, getter=isAutoResizeViewPort);
     CGSize      _defaultSize            @accessors(property=defaultSize);
     CPString    _host                   @accessors(property=host);
     CPString    _message                @accessors(property=message);
@@ -147,6 +148,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
         _port                   = 5900;
         _encrypted              = NO;
         _trueColor              = YES;
+        _autoResizeViewPort     = YES;
         _frameBufferRequestRate = 1413;
         _checkRate              = 217;
         _password               = "";
@@ -204,6 +206,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     _display.canvas_default_w = aRect.width;
     _display.canvas_default_h = aRect.height;
+    [self _syncSize];
 }
 
 /*! return the FBU actual size
@@ -220,6 +223,7 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     _DOMCanvas.width = _defaultSize.width;
     _DOMCanvas.height = _defaultSize.height;
+    [self _syncSize];
 }
 
 /*! loads the VNCView
@@ -270,6 +274,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
             [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
             if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
                 [_delegate vncView:self didDesktopSizeChange:CGSizeMake(fbu.width, fbu.height)];
+
+            [self _syncSize];
         }
     });
 
@@ -327,6 +333,16 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     {
         _display.set_scale(aZoomFactor);
         _RFB.get_mouse().set_scale(aZoomFactor);
+        [self _syncSize];
+    }
+}
+
+- (void)_syncSize
+{
+    if (_display && _autoResizeViewPort)
+    {
+        var currentSize = [self displaySize];
+        [self setFrameSize:CGSizeMake((currentSize.width + 6) * _zoom, (currentSize.height + 6) * _zoom)];
     }
 }
 
