@@ -1,1 +1,0 @@
-../noVNC/include/des.js

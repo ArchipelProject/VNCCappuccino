@@ -22,18 +22,18 @@
 @import <AppKit/CPTextField.j>
 
 noVNC_logo = nil;
-INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/";
+INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/novnc";
 
 Websock_native   = YES;
 
-@import "Resources/jsunzip.js"
-@import "Resources/input.js"
-@import "Resources/base64.js"
-@import "Resources/des.js"
-@import "Resources/display.js"
-@import "Resources/rfb.js"
-@import "Resources/websock.js"
-@import "Resources/util.js"
+@import "Resources/novnc/jsunzip.js"
+@import "Resources/novnc/input.js"
+@import "Resources/novnc/base64.js"
+@import "Resources/novnc/des.js"
+@import "Resources/novnc/display.js"
+@import "Resources/novnc/rfb.js"
+@import "Resources/novnc/websock.js"
+@import "Resources/novnc/util.js"
 
 
 

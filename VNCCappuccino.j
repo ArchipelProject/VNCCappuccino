@@ -17,7 +17,7 @@
  */
 
 
-@import "TNVNCView.j";
+@import "TNVNCView.j"
 
 /*! @mainpage
     VNCCappuccino is distributed under the @ref license "AGPL".
