@@ -50,6 +50,7 @@ TNSpiceViewStateError         = @"error";
 TNSpiceViewStateClosed        = @"closed";
 TNSpiceViewStateNeedsPassword = @"needs_password";
 
+SPICE_CONNECT_TIMEOUT = 300;
 
 @implementation TNSpiceView : TNRemoteScreenView
 {
@@ -152,9 +153,16 @@ TNSpiceViewStateNeedsPassword = @"needs_password";
 
                 if (_delegate && ([_delegate respondsToSelector:@selector(remoteScreenView:updateState:message:)]))
                     [_delegate remoteScreenView:self updateState:_state message:nil];
+            },
+
+            onerror : function(e) {
+                _state = [self _translateState:TNSpiceViewStateError];
+                _oldState = [self _translateState:TNSpiceViewStateConnecting];
+                if (_delegate && ([_delegate respondsToSelector:@selector(remoteScreenView:updateState:message:)]))
+                    [_delegate remoteScreenView:self updateState:_state message:nil];
             }
         });
-}
+    }
 
 - (void)sendPassword:(CPString)aPassword
 {
