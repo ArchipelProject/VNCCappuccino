@@ -1,0 +1,1 @@
+../../spice-html5/thirdparty/sha1.js

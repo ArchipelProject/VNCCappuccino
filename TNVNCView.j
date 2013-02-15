@@ -21,6 +21,8 @@
 @import <AppKit/CPView.j>
 @import <AppKit/CPTextField.j>
 
+@import "TNRemoteScreenView.j"
+
 noVNC_logo = nil;
 INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/novnc";
 
@@ -36,63 +38,14 @@ Websock_native   = YES;
 @import "Resources/novnc/util.js"
 
 
-
-/*!
-    @global
-    @group TNVNCCappuccinoState
-    noVNC is connected
-*/
-TNVNCCappuccinoStateNormal                  = @"normal";
-
-/*!
-    @global
-    @group TNVNCCappuccinoState
-    noVNC can't connect
-*/
-TNVNCCappuccinoStateFailed                  = @"failed";
-
-/*!
-    @global
-    @group TNVNCCappuccinoState
-    noVNC has encounter a fatal error
-*/
-TNVNCCappuccinoStateFatal                   = @"fatal";
-
-/*!
-    @global
-    @group TNVNCCappuccinoState
-    noVNC is disconnecting
-*/
-TNVNCCappuccinoStateDisconnect              = @"disconnect";
-
-/*!
-    @global
-    @group TNVNCCappuccinoState
-    noVNC is disconnected
-*/
-TNVNCCappuccinoStateDisconnected            = @"disconnected";
-
-/*!
-    @global
-    @group TNVNCCappuccinoState
-    noVNC is loaded
-*/
-TNVNCCappuccinoStateLoaded                  = @"loaded";
-
-/*!
-    @global
-    @group TNVNCCappuccinoState
-    noVNC wait for password
-*/
-TNVNCCappuccinoStatePassword                = @"password";
-
-/*!
-    @global
-    @group TNVNCCappuccinoState
-    noVNC is computing the security handshake
-*/
-TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
-
+TNVNCStateNormal         = @"normal";
+TNVNCStateFailed         = @"failed";
+TNVNCStateFatal          = @"fatal";
+TNVNCStateDisconnect     = @"disconnect";
+TNVNCStateDisconnected   = @"disconnected";
+TNVNCStateLoaded         = @"loaded";
+TNVNCStatePassword       = @"password";
+TNVNCStateSecurityResult = @"SecurityResult";
 
 
 /*! This class is a container for VNC
@@ -104,30 +57,15 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
      - vncView:didBecomeFullScreen:size:zoomFactor: this message is sent when VNCView becomes full screen. it will pass the new size and the zoomFactor
      - vncViewDoesNotSupportFullScreen: this message is sent when the VNCView received a setFullScreen message, but browser doesn't support it
 */
-@implementation TNVNCView : CPView
+@implementation TNVNCView : TNRemoteScreenView
 {
-    BOOL        _encrypted              @accessors(setter=setEncrypted:, getter=isEncrypted);
-    BOOL        _isFullScreen           @accessors(getter=isFullScreen);
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
-    BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
-    BOOL        _autoResizeViewPort     @accessors(setter=setAutoResizeViewPort:, getter=isAutoResizeViewPort);
-    CGSize      _defaultSize            @accessors(property=defaultSize);
-    CPString    _host                   @accessors(property=host);
     CPString    _message                @accessors(property=message);
     CPString    _oldState               @accessors(property=oldState);
-    CPString    _password               @accessors(property=password);
-    CPString    _port                   @accessors(property=port);
-    CPString    _state                  @accessors(property=state);
-    id          _delegate               @accessors(property=delegate);
-    id          _focusContainer         @accessors(property=focusContainer);
     int         _checkRate              @accessors(property=checkRate);
     int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
 
-    BOOL        _isFocused;
-    CPString    _displayID;
-    float       _zoom;
     id          _display;
-    id          _DOMCanvas;
     id          _DOMClipboard;
     id          _RFB;
 }
@@ -144,143 +82,36 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 {
     if (self = [super initWithFrame:aFrame])
     {
-        _host                   = nil;
-        _port                   = 5900;
-        _encrypted              = NO;
         _trueColor              = YES;
-        _autoResizeViewPort     = YES;
         _frameBufferRequestRate = 1413;
         _checkRate              = 217;
-        _password               = "";
-        _state                  = TNVNCCappuccinoStateDisconnected;
-        _oldState               = nil;
-        _defaultSize            = CGSizeMake(800.0, 490.0);
-        _zoom                   = 1;
-        _displayID              = [CPString UUID];
-        _focusContainer         = document;
-        _isFullScreen           = NO;
-
-        _DOMCanvas                  = _focusContainer.createElement("canvas");
-        _DOMCanvas.id               = _displayID;
-        _DOMCanvas.innerHTML        = "Canvas not supported.";
-        _DOMCanvas.style.border     = "3px solid #8F8F8F";
-
-        self._DOMElement.appendChild(_DOMCanvas);
-
-        _DOMCanvas.addEventListener("mouseover", function(e) {
-                [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-                [self focus];
-        }, true)
-
-        _DOMCanvas.addEventListener("mouseout", function(e) {
-                [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-                [self unfocus];
-        }, true)
     }
 
     return self;
 }
 
+- (id)_createScreenContainer
+{
+    return _focusContainer.createElement("canvas")
+}
+
+- (void)_translateState:(CPString)aState
+{
+    switch (aState)
+    {
+        case TNVNCStateNormal:          return TNRemoteScreenViewStateConnected;
+        case TNVNCStateFailed:          return TNRemoteScreenViewStateError;
+        case TNVNCStateFatal:           return TNRemoteScreenViewStateError;
+        case TNVNCStateDisconnected:    return TNRemoteScreenViewStateDisconnected;
+        case TNVNCStatePassword:        return TNRemoteScreenViewNeedsPassword;
+    }
+
+    return [super _translateState:aState];
+}
+
 
 #pragma mark -
-#pragma mark CPResponder implementation
-
-- (void)acceptsFirstResponder
-{
-    return YES;
-}
-
-- (void)resignFirstResponder
-{
-    return !_isFocused;
-}
-
-
-#pragma mark -
-#pragma mark Utilities
-
-/*! set the default size of the VNCView
-    @param aRect CGRect representing the default frame
-*/
-- (void)defaultSize:(CGRect)aRect
-{
-    _display.canvas_default_w = aRect.width;
-    _display.canvas_default_h = aRect.height;
-    [self _syncSize];
-}
-
-/*! return the FBU actual size
-    @return FBU CGSize
-*/
-- (CGSize)displaySize
-{
-    return CGSizeMake(_display.get_width(), _display.get_height());
-}
-
-/*! reset the size of the canvas to the defaultSize
-*/
-- (void)resetSize
-{
-    _DOMCanvas.width = _defaultSize.width;
-    _DOMCanvas.height = _defaultSize.height;
-    [self _syncSize];
-}
-
-/*! loads the VNCView
-    it will initialize the pure javascript noVNC component
-    it takes care of the value of the properties focusContainer,
-    frameBufferRequestRate and checkRate
-*/
-- (void)load
-{
-    CPLog.info("loading noVNC");
-
-    _RFB = RFB({"target":           _DOMCanvas,
-                "focusContainer":   _focusContainer,
-                "fbu_req_rate":     _frameBufferRequestRate,
-                "check_rate":       _checkRate
-                });
-
-    _display = _RFB.get_display();
-    if (!_display)
-        [CPException raise:@"No canvas" reason:@"Cannot get canvas with ID: " + _displayID];
-
-
-    _RFB.set_encrypt(_encrypted);
-    _RFB.set_true_color(_trueColor);
-
-    _RFB.set_onUpdateState(function(rfb, state, oldstate, msg){
-        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-        CPLog.info("noVNC state changed from " + oldstate + " to " + state);
-        _state      = state;
-        _oldState   = oldstate;
-        _message    = msg;
-
-        if (_delegate && ([_delegate respondsToSelector:@selector(vncView:updateState:message:)]))
-            [_delegate vncView:self updateState:state message:msg];
-    });
-
-    _RFB.set_clipboardReceive(function(rfb, text){
-        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-        CPLog.info("noVNC received clipboard text: " + text);
-
-        if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didReceivePasteBoardText:)]))
-            [_delegate vncView:self didReceivePasteBoardText:text]
-    });
-
-    _RFB.set_onFBResize(function(rfb, width, height) {
-        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
-
-        // needs to enqueue this because noVNC calls callbacks before actually doing the changes
-        setTimeout(function() {
-            [self _syncSize];
-            if (_delegate && ([_delegate respondsToSelector:@selector(vncView:didDesktopSizeChange:)]))
-                [_delegate vncView:self didDesktopSizeChange:CGSizeMake(width, height)];
-        }, 0);
-    });
-
-    CPLog.info("noVNC loaded");
-}
+#pragma mark Focus
 
 /*! give the focus to the VNCView. when focused, all
     mouse events, key events or whatever are sent to
@@ -292,10 +123,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     {
         _RFB.get_keyboard().set_focused(YES);
         _RFB.get_mouse().set_focused(YES);
-        _DOMCanvas.style.border = "3px solid #A1CAE2";
-        _DOMCanvas.focus();
-        _isFocused = YES;
-        [[self window] makeFirstResponder:self];
+
+        [super focus];
     }
 }
 
@@ -309,9 +138,21 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     {
         _RFB.get_keyboard().set_focused(NO);
         _RFB.get_mouse().set_focused(NO);
-        _DOMCanvas.style.border = "3px solid #8F8F8F";
-        _isFocused = NO;
+
+        [super unfocus];
     }
+}
+
+
+#pragma mark -
+#pragma mark Zoom Management
+
+/*! return the FBU actual size
+    @return FBU CGSize
+*/
+- (CGSize)displaySize
+{
+    return CGSizeMake(_display.get_width(), _display.get_height());
 }
 
 /*! get the zoom value
@@ -328,7 +169,8 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
 */
 - (void)setZoom:(float)aZoomFactor
 {
-    _zoom = aZoomFactor;
+    [super setZoom:aZoomFactor];
+
     if (_display)
     {
         _display.set_scale(aZoomFactor);
@@ -337,85 +179,65 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     }
 }
 
-- (void)_syncSize
-{
-    if (_display && _autoResizeViewPort)
-    {
-        var currentSize = [self displaySize];
-        [self setFrameSize:CGSizeMake((currentSize.width + 6) * _zoom, (currentSize.height + 6) * _zoom)];
-    }
-}
-
-/*! send a password to the VNC Server
-    use this function in case of state TNVNCCappuccinoStatePassword.
-    @param aPassword CPString containing the password
-*/
-- (void)sendPassword:(CPString)aPassword
-{
-    CPLog.info("sending password to noVNC");
-    _RFB.sendPassword(aPassword);
-    _password = aPassword;
-}
-
-/*! send the given text to the VNC Server pasteboard
-    @param aText the text to send to the distant server
-*/
-- (void)sendTextToPasteboard:(CPString)aText
-{
-    if ((_RFB) && (_state == TNVNCCappuccinoStateNormal))
-        _RFB.clipboardPasteFrom(aText);
-}
-
-/*! display in fullscreen if support
-    @param shouldBeFullScreen if true, display full screen
-*/
-- (void)setFullScreen:(BOOL)shouldBeFullScreen
-{
-    if (shouldBeFullScreen === _isFullScreen)
-        return;
-
-    var currentDOMObject = _focusContainer.getElementsByTagName("html")[0],
-        oldSize,
-        newSize,
-        zoomFactor;
-
-    currentDOMObject.style.height = "100%";
-
-    oldSize = CGSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight);
-
-    if (![CPPlatform isBrowser] || !currentDOMObject.webkitRequestFullScreen || !_focusContainer.webkitCancelFullScreen)
-    {
-        CPLog.warn("you need last version of webkit to support fullscreen."
-                    + " use Webkit nightlies and set 'defaults write com.apple.Safari WebKitFullScreenEnabled 1' in Terminal");
-
-        if (_delegate && [_delegate respondsToSelector:@selector(vncViewDoesNotSupportFullScreen:)])
-            [_delegate vncViewDoesNotSupportFullScreen:self];
-
-        return;
-    }
-
-    if (shouldBeFullScreen)
-    {
-        currentDOMObject.webkitRequestFullScreen();
-        _isFullScreen   = YES;
-        zoomFactor      = currentDOMObject.offsetWidth / oldSize.width;
-        [self focus];
-    }
-    else
-    {
-        _focusContainer.webkitCancelFullScreen();
-        _isFullScreen   = NO;
-        zoomFactor      = 1.0;
-    }
-
-    if (_delegate && [_delegate respondsToSelector:@selector(vncView:didBecomeFullScreen:size:zoomFactor:)])
-        [_delegate vncView:self didBecomeFullScreen:_isFullScreen size:CGSizeMake(currentDOMObject.offsetWidth, currentDOMObject.offsetHeight) zoomFactor:zoomFactor];
-
-}
-
 
 #pragma mark -
-#pragma mark Actions
+#pragma mark Connection Management
+
+/*! loads the VNCView
+    it will initialize the pure javascript noVNC component
+    it takes care of the value of the properties focusContainer,
+    frameBufferRequestRate and checkRate
+*/
+- (void)load
+{
+    CPLog.info("loading noVNC");
+
+    _RFB = RFB({"target":           _screenContainer,
+                "focusContainer":   _focusContainer,
+                "fbu_req_rate":     _frameBufferRequestRate,
+                "check_rate":       _checkRate
+                });
+
+    _display = _RFB.get_display();
+    if (!_display)
+        [CPException raise:@"No canvas" reason:@"Cannot get canvas with ID: " + _displayID];
+
+
+    _RFB.set_encrypt(_encrypted);
+    _RFB.set_true_color(_trueColor);
+
+    _RFB.set_onUpdateState(function(rfb, state, oldstate, msg){
+        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
+        CPLog.info("noVNC state changed from " + oldstate + " to " + state);
+        _state      = [self _translateState:state];
+        _oldState   = [self _translateState:oldstate];
+        _message    = msg;
+
+        if (_delegate && ([_delegate respondsToSelector:@selector(remoteScreenView:updateState:message:)]))
+            [_delegate remoteScreenView:self updateState:_state message:msg];
+    });
+
+    _RFB.set_clipboardReceive(function(rfb, text){
+        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
+        CPLog.info("noVNC received clipboard text: " + text);
+
+        if (_delegate && ([_delegate respondsToSelector:@selector(remoteScreenView:didReceivePasteBoardText:)]))
+            [_delegate remoteScreenView:self didReceivePasteBoardText:text]
+    });
+
+    _RFB.set_onFBResize(function(rfb, width, height) {
+        [[CPRunLoop currentRunLoop] limitDateForMode:CPDefaultRunLoopMode];
+
+        // needs to enqueue this because noVNC calls callbacks before actually doing the changes
+        setTimeout(function() {
+            [self _syncSize];
+            if (_delegate && ([_delegate respondsToSelector:@selector(remoteScreenView:didDesktopSizeChange:)]))
+                [_delegate remoteScreenView:self didDesktopSizeChange:CGSizeMake(width, height)];
+        }, 0);
+    });
+
+    CPLog.info("noVNC loaded");
+}
 
 /*! IBAction that connects to the parametrized VNC Server
     @param aSender the origin control of action
@@ -439,6 +261,30 @@ TNVNCCappuccinoStateSecurityResult          = @"SecurityResult";
     CPLog.info("disconnecting noVNC");
     _display.set_ctx = nil;
     _RFB.force_disconnect();
+}
+
+
+#pragma mark -
+#pragma mark VNC Specials
+
+/*! send a password to the VNC Server
+    use this function in case of state TNVNCStatePassword.
+    @param aPassword CPString containing the password
+*/
+- (void)sendPassword:(CPString)aPassword
+{
+    CPLog.info("sending password to noVNC");
+    _RFB.sendPassword(aPassword);
+    _password = aPassword;
+}
+
+/*! send the given text to the VNC Server pasteboard
+    @param aText the text to send to the distant server
+*/
+- (void)sendTextToPasteboard:(CPString)aText
+{
+    if ((_RFB) && (_state == TNRemoteScreenViewStateConnected))
+        _RFB.clipboardPasteFrom(aText);
 }
 
 /*! send CTRL ALT DEL key combination to the VNC server
