@@ -3,4 +3,4 @@
 	url = https://github.com/ArchipelProject/noVNC.git
 [submodule "spice-html5"]
 	path = spice-html5
-	url = https://primalmotion@github.com/ArchipelProject/spice-html5.git
+	url = https://github.com/ArchipelProject/spice-html5.git
