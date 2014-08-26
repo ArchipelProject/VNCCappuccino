@@ -99,7 +99,7 @@ TNVNCStateSecurityResult = @"SecurityResult";
     return _focusContainer.createElement("canvas")
 }
 
-- (void)_translateState:(CPString)aState
+- (CPString)_translateState:(CPString)aState
 {
     switch (aState)
     {

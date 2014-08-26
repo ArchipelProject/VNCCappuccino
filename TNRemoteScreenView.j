@@ -114,7 +114,7 @@ TNRemoteScreenViewNeedsPassword         = @"needs_password";
 /*! TNRemoteScreenView provides different state. External libraries might use
     Different terminologies. Overides this function to return standardized states.
 */
-- (void)_translateState:(CPString)aState
+- (CPString)_translateState:(CPString)aState
 {
     return aState;
 }
