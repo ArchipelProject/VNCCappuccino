@@ -28,6 +28,10 @@ INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/novnc";
 
 Websock_native   = YES;
 
+@import "Resources/novnc/keyboard.js"
+@import "Resources/novnc/keysym.js"
+@import "Resources/novnc/keysym.js"
+@import "Resources/novnc/util.js"
 @import "Resources/novnc/jsunzip.js"
 @import "Resources/novnc/input.js"
 @import "Resources/novnc/base64.js"
