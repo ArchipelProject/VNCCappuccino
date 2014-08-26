@@ -28,8 +28,9 @@ INCLUDE_URI     = "/Frameworks/VNCCappuccino/Resources/novnc";
 
 Websock_native   = YES;
 
-@import "Resources/novnc/keyboard.js"
 @import "Resources/novnc/keysym.js"
+@import "Resources/novnc/keysymdef.js"
+@import "Resources/novnc/keyboard.js"
 @import "Resources/novnc/keysym.js"
 @import "Resources/novnc/util.js"
 @import "Resources/novnc/jsunzip.js"
@@ -40,7 +41,6 @@ Websock_native   = YES;
 @import "Resources/novnc/rfb.js"
 @import "Resources/novnc/websock.js"
 @import "Resources/novnc/util.js"
-
 
 TNVNCStateNormal         = @"normal";
 TNVNCStateFailed         = @"failed";
