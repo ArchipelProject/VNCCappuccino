@@ -134,14 +134,14 @@ TNRemoteScreenViewNeedsPassword         = @"needs_password";
 
 /*! @ignore
 */
-- (void)acceptsFirstResponder
+- (BOOL)acceptsFirstResponder
 {
     return YES;
 }
 
 /*! @ignore
 */
-- (void)resignFirstResponder
+- (BOOL)resignFirstResponder
 {
     return !_isFocused;
 }
