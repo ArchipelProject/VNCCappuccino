@@ -66,6 +66,7 @@ TNVNCStateSecurityResult = @"SecurityResult";
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
     CPString    _message                @accessors(property=message);
     CPString    _oldState               @accessors(property=oldState);
+    CPString    _path                   @accessors(property=path);
     int         _checkRate              @accessors(property=checkRate);
     int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
 
@@ -249,7 +250,11 @@ TNVNCStateSecurityResult = @"SecurityResult";
 - (IBAction)connect:(id)aSender
 {
     CPLog.info("connecting noVNC");
-    _RFB.connect(_host, _port, _password);
+    if (_path)
+        _RFB.connect(_host, _port, _password, _path);
+    else
+        _RFB.connect(_host, _port, _password);
+
     if (_display)
     {
         _display.set_scale(_zoom);
