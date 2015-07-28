@@ -64,7 +64,6 @@ TNVNCStateSecurityResult = @"SecurityResult";
 {
     BOOL        _trueColor              @accessors(setter=setTrueColor:, getter=isTrueColor);
     CPString    _message                @accessors(property=message);
-    CPString    _oldState               @accessors(property=oldState);
     CPString    _path                   @accessors(property=path);
     int         _checkRate              @accessors(property=checkRate);
     int         _frameBufferRequestRate @accessors(property=frameBufferRequestRate);
